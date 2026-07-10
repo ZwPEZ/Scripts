@@ -7196,10 +7196,6 @@ function Compkiller.new(Config : Window)
 					BackgroundTransparency = 1
 				});
 
-				for i,v in next , TabArgs.Tabs do
-					v.Remote:Fire(false);
-				end;
-
 				Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15)})
 				task.delay(0.35, function()
 					if WindowArgs.SelectedTab ~= TabButton then
@@ -7621,6 +7617,7 @@ function Compkiller.new(Config : Window)
 		UICorner.Parent = Highlight
 
 		local TabConfig = Instance.new("Frame")
+		local TabConfigLayout = Instance.new("UIListLayout")
 		local ConfigList = Instance.new("Frame")
 		local ConfigCorner = Instance.new("UICorner")
 		local UIStroke = Instance.new("UIStroke")
@@ -7657,10 +7654,14 @@ function Compkiller.new(Config : Window)
 		TabConfig.Size = UDim2.new(1, -15, 1, -15)
 		TabConfig.ZIndex = 6
 
+		TabConfigLayout.Parent = TabConfig
+		TabConfigLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		TabConfigLayout.Padding = UDim.new(0, 10)
+
 		ConfigList.Name = Compkiller:_RandomString()
 		ConfigList.Parent = TabConfig
-		ConfigList.AnchorPoint = Vector2.new(0.5, 0)
 		ConfigList.BackgroundColor3 = Compkiller.Colors.BlockColor
+		ConfigList.LayoutOrder = 1
 
 		table.insert(Compkiller.Elements.BlockColor , {
 			Element = ConfigList,
@@ -7669,7 +7670,6 @@ function Compkiller.new(Config : Window)
 
 		ConfigList.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ConfigList.BorderSizePixel = 0
-		ConfigList.Position = UDim2.new(0.5, 0, 0, 0)
 		ConfigList.Size = UDim2.new(1, 0, 1, -105)
 		ConfigList.ZIndex = 9
 
@@ -7779,8 +7779,8 @@ function Compkiller.new(Config : Window)
 
 		AddConfig.Name = Compkiller:_RandomString()
 		AddConfig.Parent = TabConfig
-		AddConfig.AnchorPoint = Vector2.new(0.5, 1)
 		AddConfig.BackgroundColor3 = Compkiller.Colors.BlockColor
+		AddConfig.LayoutOrder = 2
 
 		table.insert(Compkiller.Elements.BlockColor , {
 			Element = AddConfig,
@@ -7789,7 +7789,6 @@ function Compkiller.new(Config : Window)
 
 		AddConfig.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		AddConfig.BorderSizePixel = 0
-		AddConfig.Position = UDim2.new(0.5, 0, 1, 0)
 		AddConfig.Size = UDim2.new(1, 0, 0, 95)
 		AddConfig.ZIndex = 9
 
