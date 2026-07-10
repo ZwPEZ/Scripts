@@ -5783,6 +5783,10 @@ function Compkiller:_LoadElement(Parent: Frame , EnabledLine: boolean , Signal ,
 					BackgroundTransparency = 0
 				});
 
+				Compkiller:_Animation(TextBox_2,TweenInfo.new(0.2),{
+					TextTransparency = 0
+				});
+
 			else
 				Compkiller:_Animation(BlockText,TweenInfo.new(0.2),{
 					TextTransparency = 1
@@ -5798,6 +5802,10 @@ function Compkiller:_LoadElement(Parent: Frame , EnabledLine: boolean , Signal ,
 
 				Compkiller:_Animation(LinkValues,TweenInfo.new(0.2),{
 					BackgroundTransparency = 1
+				});
+
+				Compkiller:_Animation(TextBox_2,TweenInfo.new(0.2),{
+					TextTransparency = 1
 				});
 
 			end;
@@ -7113,7 +7121,7 @@ function Compkiller.new(Config : Window)
 
 		-- Creating Container --
 
-		local ContainerTab = Instance.new("Frame")
+		local ContainerTab = Instance.new("CanvasGroup")
 		local MainFrame = Instance.new("Frame")
 		local Top = Instance.new("Frame")
 		local UIListLayout = Instance.new("UIListLayout")
@@ -7182,7 +7190,7 @@ function Compkiller.new(Config : Window)
 					ContainerTab.Position = UDim2.new(0.5, 0, 0.5, 15)
 				end
 				Compkiller:_SetNilP(ContainerTab , TabMainFrame);
-				Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
+				Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0), GroupTransparency = 0})
 			else
 				Compkiller:_Animation(Icon,Tween,{
 					ImageTransparency = 0.5
@@ -7196,7 +7204,7 @@ function Compkiller.new(Config : Window)
 					BackgroundTransparency = 1
 				});
 
-				Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15)})
+				Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15), GroupTransparency = 1})
 				task.delay(0.35, function()
 					if WindowArgs.SelectedTab ~= TabButton then
 						ContainerTab.Visible = false;
@@ -7293,13 +7301,27 @@ function Compkiller.new(Config : Window)
 		end);
 
 		Compkiller:_Input(TabButton,function()
+			if WindowArgs.SelectedTab == TabButton then return end;
+			if WindowArgs.__SwitchingTab then return end;
+			WindowArgs.__SwitchingTab = true;
+
+			WindowArgs.SelectedTab = TabButton; -- update immediately to prevent race conditions with task.delay(0.35)
+
 			for i,v in next, WindowArgs.Tabs do
-				if v.Root == TabButton then
-					v.Remote:Fire(true);
-				else
+				if v.Root ~= TabButton then
 					v.Remote:Fire(false);
 				end;
 			end;
+			
+			task.wait(0.35);
+
+			for i,v in next, WindowArgs.Tabs do
+				if v.Root == TabButton then
+					v.Remote:Fire(true);
+				end;
+			end;
+
+			WindowArgs.__SwitchingTab = false;
 		end);
 
 		function TabArgs:DrawTab(TabConfig : TabConfig) -- Internal Tab
@@ -7768,15 +7790,22 @@ function Compkiller.new(Config : Window)
 		ScrollingFrame.ScrollBarThickness = 0
 
 		UIListLayout.Parent = ScrollingFrame
-		UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 		UIListLayout.Padding = UDim.new(0, 7)
+
+		UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			ScrollingFrame.CanvasSize = UDim2.fromOffset(0, UIListLayout.AbsoluteContentSize.Y + 20)
+		end)
+		--ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
 		Space.Name = Compkiller:_RandomString()
 		Space.Parent = ScrollingFrame
 		Space.BackgroundTransparency = 1.000
 		Space.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Space.BorderSizePixel = 0
+		Space.Size = UDim2.new(1, 0, 0, 10)
+		Space.LayoutOrder = 9999
 
 		AddConfig.Name = Compkiller:_RandomString()
 		AddConfig.Parent = TabConfig
@@ -8212,13 +8241,27 @@ function Compkiller.new(Config : Window)
 		end);
 
 		Compkiller:_Input(TabButton,function()
+			if WindowArgs.SelectedTab == TabButton then return end;
+			if WindowArgs.__SwitchingTab then return end;
+			WindowArgs.__SwitchingTab = true;
+
+			WindowArgs.SelectedTab = TabButton; -- update immediately to prevent race conditions with task.delay(0.35)
+
 			for i,v in next, WindowArgs.Tabs do
-				if v.Root == TabButton then
-					v.Remote:Fire(true);
-				else
+				if v.Root ~= TabButton then
 					v.Remote:Fire(false);
 				end;
 			end;
+			
+			task.wait(0.35);
+
+			for i,v in next, WindowArgs.Tabs do
+				if v.Root == TabButton then
+					v.Remote:Fire(true);
+				end;
+			end;
+
+			WindowArgs.__SwitchingTab = false;
 		end);
 
 		local ConfigListOpen = true
@@ -8697,6 +8740,11 @@ function Compkiller.new(Config : Window)
 			local Refresh = function()
 				local FullConfig = Configuration.Config:GetFullConfigs();
 
+				print("[DEBUG] Refresh called! Found", #FullConfig, "configs.")
+				for i,v in next, FullConfig do
+					print("[DEBUG] Config Name:", tostring(v.Name), "| Author:", tostring(v.Info and v.Info.Author))
+				end
+
 				for i,v in next, ScrollingFrame:GetChildren() do
 					if v:IsA('Frame') and v.Name ~= "Space" then
 						v:Destroy();
@@ -8706,6 +8754,7 @@ function Compkiller.new(Config : Window)
 				for i,v in next , __signals do
 					v:Disconnect();
 				end;
+				table.clear(__signals);
 
 				for i,v in next , FullConfig do
 					local Button = TabArgs:_DrawConfig();
@@ -8715,6 +8764,10 @@ function Compkiller.new(Config : Window)
 					table.insert(__signals,TabOpenSignal:Connect(function(v)
 						Button:Toggle(v);
 					end));
+
+					if WindowArgs.SelectedTab == TabButton then
+						Button:Toggle(true);
+					end;
 
 					Button.OnLoad = function()
 						WindowArgs.Notify.new({
@@ -8772,19 +8825,22 @@ function Compkiller.new(Config : Window)
 			return Init;
 		end;
 
+		TabArgs:Init();
+
 		return TabArgs;
 	end;
 
-	function WindowArgs:DrawSocialUI(Configuration : TabConfigManager , Internal)
+		function WindowArgs:DrawSocialUI(Configuration : TabSocialManager , Internal)
 		Configuration = Compkiller.__CONFIG(Configuration,{
 			Name = "Social",
-			Icon = "message-circle"
+			Icon = "message-circle",
+			
 		});
 
 		local TabOpenSignal = Compkiller.__SIGNAL(false);
 		local TabArgs = {};
 
-		-- Tab Button --
+		-- Button --
 		local TabButton = Instance.new("Frame")
 		local Icon = Instance.new("ImageLabel")
 		local TabNameLabel = Instance.new("TextLabel")
@@ -8800,20 +8856,22 @@ function Compkiller.new(Config : Window)
 		TabButton.BackgroundTransparency = 1.000
 		TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabButton.BorderSizePixel = 0
-		TabButton.Position = UDim2.new(0, 5, 0.407999992, 0)
-		TabButton.Size = UDim2.new(1, -10, 0, 30)
+		TabButton.ClipsDescendants = true
+		TabButton.Size = UDim2.new(1, -10, 0, 32)
+		TabButton.ZIndex = 3
 
 		Icon.Name = Compkiller:_RandomString()
 		Icon.Parent = TabButton
 		Icon.AnchorPoint = Vector2.new(0, 0.5)
+		Icon.BackgroundColor3 = Compkiller.Colors.Highlight
 		Icon.BackgroundTransparency = 1.000
 		Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Icon.BorderSizePixel = 0
-		Icon.Position = UDim2.new(0, 6, 0.5, 0)
+		Icon.Position = UDim2.new(0, 15, 0.5, 0)
 		Icon.Size = UDim2.new(0, 15, 0, 15)
-		Icon.Image = Compkiller:CacheImage("rbxassetid://10723405649") -- Message-circle icon
+		Icon.ZIndex = 3
+		Icon.Image = Compkiller:_GetIcon(Configuration.Icon);
 		Icon.ImageColor3 = Compkiller.Colors.Highlight
-		Icon.ImageTransparency = 0.600
 
 		table.insert(Compkiller.Elements.Highlight,{
 			Element = Icon,
@@ -8826,39 +8884,62 @@ function Compkiller.new(Config : Window)
 		TabNameLabel.BackgroundTransparency = 1.000
 		TabNameLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabNameLabel.BorderSizePixel = 0
-		TabNameLabel.Position = UDim2.new(0, 27, 0.5, 0)
-		TabNameLabel.Size = UDim2.new(1, -27, 1, 0)
+		TabNameLabel.Position = UDim2.new(0, 43, 0.5, 0)
+		TabNameLabel.Size = UDim2.new(0, 200, 0, 25)
+		TabNameLabel.ZIndex = 3
 		TabNameLabel.Font = Enum.Font.GothamMedium
-		TabNameLabel.Text = Configuration.Name
+		TabNameLabel.Text = Configuration.Name;
 		TabNameLabel.TextColor3 = Compkiller.Colors.SwitchColor
-		TabNameLabel.TextSize = 13.000
-		TabNameLabel.TextTransparency = 0.600
+		TabNameLabel.TextSize = 15.000
 		TabNameLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-		table.insert(Compkiller.Elements.SwitchColor,{
+		table.insert(Compkiller.Elements.SwitchColor , {
 			Element = TabNameLabel,
-			Property = "TextColor3"
+			Property = 'TextColor3'
 		});
 
 		Highlight.Name = Compkiller:_RandomString()
 		Highlight.Parent = TabButton
-		Highlight.BackgroundColor3 = Compkiller.Colors.Highlight
-		Highlight.BackgroundTransparency = 1.000
+		Highlight.AnchorPoint = Vector2.new(0.5, 0.5)
+		Highlight.BackgroundColor3 = Color3.fromRGB(161, 161, 161)
+		Highlight.BackgroundTransparency = 0.925
 		Highlight.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Highlight.BorderSizePixel = 0
-		Highlight.Size = UDim2.new(1, 0, 1, 0)
+		Highlight.Position = UDim2.new(0.5, 0, 0.5, 0)
+		Highlight.Size = UDim2.new(1, -17, 1, 0)
+		Highlight.ZIndex = 2
 
-		table.insert(Compkiller.Elements.Highlight,{
-			Element = Highlight,
-			Property = "BackgroundColor3"
-		});
-
-		UICorner.CornerRadius = UDim.new(0, 6)
+		UICorner.CornerRadius = UDim.new(0, 4)
 		UICorner.Parent = Highlight
 
-		-- Main Tab Setup --
 		local TabSocial = Instance.new("Frame")
-		
+		local TabSocialLayout = Instance.new("UIListLayout")
+		local ChatLog = Instance.new("Frame")
+		local ConfigCorner = Instance.new("UICorner")
+		local UIStroke = Instance.new("UIStroke")
+		local Header = Instance.new("Frame")
+		local SectionText = Instance.new("TextLabel")
+		local SectionClose = Instance.new("ImageLabel")
+		local ScrollingFrame = Instance.new("ScrollingFrame")
+		local UIListLayout = Instance.new("UIListLayout")
+		local Space = Instance.new("Frame")
+		local SendMessagePanel = Instance.new("Frame")
+		local UICorner_2 = Instance.new("UICorner")
+		local UIStroke_2 = Instance.new("UIStroke")
+		local Header_2 = Instance.new("Frame")
+		local SectionText_2 = Instance.new("TextLabel")
+		local SectionClose_2 = Instance.new("ImageLabel")
+		local Frame = Instance.new("Frame")
+		local UIStroke_3 = Instance.new("UIStroke")
+		local UICorner_3 = Instance.new("UICorner")
+		local TextBox = Instance.new("TextBox")
+		local Button = Instance.new("Frame")
+		local BlockLine = Instance.new("Frame")
+		local Frame_2 = Instance.new("Frame")
+		local UIStroke_4 = Instance.new("UIStroke")
+		local UICorner_4 = Instance.new("UICorner")
+		local TextLabel = Instance.new("TextLabel")
+
 		TabSocial.Name = Compkiller:_RandomString()
 		TabSocial.Parent = TabMainFrame
 		TabSocial.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -8868,183 +8949,643 @@ function Compkiller.new(Config : Window)
 		TabSocial.Position = UDim2.new(0.5, 0, 0.5, 0)
 		TabSocial.Size = UDim2.new(1, -15, 1, -15)
 		TabSocial.ZIndex = 6
-        TabSocial.Visible = false
 
-		-- Social Components --
-		local ChatLog = Instance.new("ScrollingFrame")
-		local ChatLayout = Instance.new("UIListLayout")
-		local InputFrame = Instance.new("Frame")
-		local InputCorner = Instance.new("UICorner")
-		local InputStroke = Instance.new("UIStroke")
-		local MessageBox = Instance.new("TextBox")
-		local SendButton = Instance.new("TextButton")
-		local SendCorner = Instance.new("UICorner")
+		TabSocialLayout.Parent = TabSocial
+		TabSocialLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		TabSocialLayout.Padding = UDim.new(0, 10)
 
 		ChatLog.Name = Compkiller:_RandomString()
 		ChatLog.Parent = TabSocial
-		ChatLog.Active = true
-		ChatLog.BackgroundTransparency = 1.000
+		ChatLog.BackgroundColor3 = Compkiller.Colors.BlockColor
+		ChatLog.LayoutOrder = 1
+
+		table.insert(Compkiller.Elements.BlockColor , {
+			Element = ChatLog,
+			Property = "BackgroundColor3"
+		});
+
+		ChatLog.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ChatLog.BorderSizePixel = 0
-		ChatLog.Size = UDim2.new(1, 0, 1, -40)
-		ChatLog.CanvasSize = UDim2.new(0, 0, 0, 0)
-		ChatLog.ScrollBarThickness = 2
-        ChatLog.ScrollBarImageColor3 = Compkiller.Colors.Highlight
-        table.insert(Compkiller.Elements.Highlight,{
-            Element = ChatLog,
-            Property = "ScrollBarImageColor3"
-        })
+		ChatLog.ClipsDescendants = true
+		ChatLog.Size = UDim2.new(1, 0, 1, -105)
+		ChatLog.ZIndex = 9
 
-		ChatLayout.Parent = ChatLog
-		ChatLayout.SortOrder = Enum.SortOrder.LayoutOrder
-		ChatLayout.Padding = UDim.new(0, 5)
+		ConfigCorner.CornerRadius = UDim.new(0, 6)
+		ConfigCorner.Parent = ChatLog
 
-		InputFrame.Name = Compkiller:_RandomString()
-		InputFrame.Parent = TabSocial
-		InputFrame.AnchorPoint = Vector2.new(0, 1)
-		InputFrame.BackgroundColor3 = Compkiller.Colors.BlockColor
-		InputFrame.BorderSizePixel = 0
-		InputFrame.Position = UDim2.new(0, 0, 1, 0)
-		InputFrame.Size = UDim2.new(1, -70, 0, 30)
+		UIStroke.Color = Compkiller.Colors.StrokeColor
+		UIStroke.Parent = ChatLog
 
-        table.insert(Compkiller.Elements.BlockColor,{
-            Element = InputFrame,
-            Property = "BackgroundColor3"
-        })
+		table.insert(Compkiller.Elements.StrokeColor,{
+			Element = UIStroke,
+			Property = "Color"
+		});
 
-		InputCorner.CornerRadius = UDim.new(0, 4)
-		InputCorner.Parent = InputFrame
+		Header.Name = Compkiller:_RandomString()
+		Header.Parent = ChatLog
+		Header.BackgroundTransparency = 1.000
+		Header.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Header.BorderSizePixel = 0
+		Header.LayoutOrder = -100
+		Header.Size = UDim2.new(1, 0, 0, 35)
+		Header.ZIndex = 9
 
-		InputStroke.Color = Compkiller.Colors.StrokeColor
-		InputStroke.Parent = InputFrame
-        table.insert(Compkiller.Elements.StrokeColor,{
-            Element = InputStroke,
-            Property = "Color"
-        })
+		SectionText.Name = Compkiller:_RandomString()
+		SectionText.Parent = Header
+		SectionText.AnchorPoint = Vector2.new(0, 0.5)
+		SectionText.BackgroundTransparency = 1.000
+		SectionText.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		SectionText.BorderSizePixel = 0
+		SectionText.Position = UDim2.new(0, 12, 0.5, 0)
+		SectionText.Size = UDim2.new(0, 200, 0, 25)
+		SectionText.ZIndex = 10
+		SectionText.Font = Enum.Font.GothamMedium
+		SectionText.Text = "Chat Log"
+		SectionText.TextColor3 = Compkiller.Colors.SwitchColor
+		SectionText.TextSize = 14.000
+		SectionText.TextTransparency = 0.500
+		SectionText.TextXAlignment = Enum.TextXAlignment.Left
 
-		MessageBox.Name = Compkiller:_RandomString()
-		MessageBox.Parent = InputFrame
-		MessageBox.BackgroundTransparency = 1.000
-		MessageBox.Position = UDim2.new(0, 10, 0, 0)
-		MessageBox.Size = UDim2.new(1, -20, 1, 0)
-		MessageBox.Font = Enum.Font.GothamMedium
-		MessageBox.PlaceholderText = "Type message..."
-		MessageBox.Text = ""
-		MessageBox.TextColor3 = Compkiller.Colors.SwitchColor
-		MessageBox.TextSize = 13.000
-		MessageBox.TextXAlignment = Enum.TextXAlignment.Left
-        MessageBox.ClearTextOnFocus = false
-        table.insert(Compkiller.Elements.SwitchColor,{
-            Element = MessageBox,
-            Property = "TextColor3"
-        })
+		table.insert(Compkiller.Elements.SwitchColor , {
+			Element = SectionText,
+			Property = 'TextColor3'
+		});
 
-		SendButton.Name = Compkiller:_RandomString()
-		SendButton.Parent = TabSocial
-		SendButton.AnchorPoint = Vector2.new(1, 1)
-		SendButton.BackgroundColor3 = Compkiller.Colors.Highlight
-		SendButton.BorderSizePixel = 0
-		SendButton.Position = UDim2.new(1, 0, 1, 0)
-		SendButton.Size = UDim2.new(0, 60, 0, 30)
-		SendButton.Font = Enum.Font.GothamBold
-		SendButton.Text = "Send"
-		SendButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-		SendButton.TextSize = 13.000
+		SectionClose.Name = Compkiller:_RandomString()
+		SectionClose.Parent = Header
+		SectionClose.AnchorPoint = Vector2.new(1, 0.5)
+		SectionClose.BackgroundTransparency = 1.000
+		SectionClose.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		SectionClose.BorderSizePixel = 0
+		SectionClose.Position = UDim2.new(1, -12, 0.5, 0)
+		SectionClose.Size = UDim2.new(0, 17, 0, 17)
+		SectionClose.ZIndex = 10
+		SectionClose.Image = Compkiller:CacheImage("rbxassetid://109535175596957")
+		SectionClose.ImageTransparency = 0.500
 
-        table.insert(Compkiller.Elements.Highlight,{
-            Element = SendButton,
-            Property = "BackgroundColor3"
-        })
+		BlockLine.Name = Compkiller:_RandomString()
+		BlockLine.Parent = Header
+		BlockLine.AnchorPoint = Vector2.new(0.5, 1)
+		BlockLine.Visible = false
+		BlockLine.BackgroundTransparency = 1.000
+		BlockLine.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		BlockLine.BorderSizePixel = 0
+		BlockLine.Position = UDim2.new(0.5, 0, 1, 0)
+		BlockLine.Size = UDim2.new(1, 0, 0, 1)
+		BlockLine.ZIndex = 10
 
-		SendCorner.CornerRadius = UDim.new(0, 4)
-		SendCorner.Parent = SendButton
+		Frame.Name = Compkiller:_RandomString()
+		Frame.Parent = ChatLog
+		Frame.AnchorPoint = Vector2.new(0.5, 0)
+		Frame.BackgroundColor3 = Compkiller.Colors.BlockColor
 
-		local function ToggleUI(bool)
-			local TransTween = TweenInfo.new(0.35, Enum.EasingStyle.Quint)
-			
+		table.insert(Compkiller.Elements.BlockColor , {
+			Element = Frame,
+			Property = "BackgroundColor3"
+		});
+
+		Frame.BackgroundTransparency = 1.000
+		Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Frame.BorderSizePixel = 0
+		Frame.Position = UDim2.new(0.5, 0, 0, 35)
+		Frame.Size = UDim2.new(1, -2, 1, -38)
+		Frame.ZIndex = 12
+
+		ScrollingFrame.Name = Compkiller:_RandomString()
+		ScrollingFrame.Parent = Frame
+		ScrollingFrame.Active = true
+		ScrollingFrame.AnchorPoint = Vector2.new(0.5, 0)
+		ScrollingFrame.BackgroundTransparency = 1.000
+		ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		ScrollingFrame.BorderSizePixel = 0
+		ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 35)
+		ScrollingFrame.Size = UDim2.new(1, -10, 1, -45)
+		ScrollingFrame.ZIndex = 12
+		ScrollingFrame.ScrollBarThickness = 0
+
+		UIListLayout.Parent = ScrollingFrame
+		UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		UIListLayout.Padding = UDim.new(0, 7)
+
+		UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			ScrollingFrame.CanvasSize = UDim2.fromOffset(0, UIListLayout.AbsoluteContentSize.Y)
+		end)
+
+		Space.Name = Compkiller:_RandomString()
+		Space.Parent = ScrollingFrame
+		Space.BackgroundTransparency = 1.000
+		Space.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Space.BorderSizePixel = 0
+
+		SendMessagePanel.Name = Compkiller:_RandomString()
+		SendMessagePanel.Parent = TabSocial
+		SendMessagePanel.BackgroundColor3 = Compkiller.Colors.BlockColor
+		SendMessagePanel.LayoutOrder = 2
+
+		table.insert(Compkiller.Elements.BlockColor , {
+			Element = SendMessagePanel,
+			Property = "BackgroundColor3"
+		});
+
+		SendMessagePanel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		SendMessagePanel.BorderSizePixel = 0
+		SendMessagePanel.ClipsDescendants = true
+		SendMessagePanel.Size = UDim2.new(1, 0, 0, 95)
+		SendMessagePanel.ZIndex = 9
+
+		UICorner_2.CornerRadius = UDim.new(0, 6)
+		UICorner_2.Parent = SendMessagePanel
+
+		UIStroke_2.Color = Compkiller.Colors.StrokeColor
+		UIStroke_2.Parent = SendMessagePanel
+
+		table.insert(Compkiller.Elements.StrokeColor,{
+			Element = UIStroke_2,
+			Property = "Color"
+		});
+
+		Header_2.Name = Compkiller:_RandomString()
+		Header_2.Parent = SendMessagePanel
+		Header_2.BackgroundTransparency = 1.000
+		Header_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Header_2.BorderSizePixel = 0
+		Header_2.Size = UDim2.new(1, 0, 0, 35)
+		Header_2.ZIndex = 9
+
+		SectionText_2.Name = Compkiller:_RandomString()
+		SectionText_2.Parent = Header_2
+		SectionText_2.AnchorPoint = Vector2.new(0, 0.5)
+		SectionText_2.BackgroundTransparency = 1.000
+		SectionText_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		SectionText_2.BorderSizePixel = 0
+		SectionText_2.Position = UDim2.new(0, 12, 0.5, 0)
+		SectionText_2.Size = UDim2.new(0, 200, 0, 25)
+		SectionText_2.ZIndex = 10
+		SectionText_2.Font = Enum.Font.GothamMedium
+		SectionText_2.Text = "Send Message"
+		SectionText_2.TextColor3 = Compkiller.Colors.SwitchColor
+		SectionText_2.TextSize = 14.000
+		SectionText_2.TextTransparency = 0.500
+		SectionText_2.TextXAlignment = Enum.TextXAlignment.Left
+
+		table.insert(Compkiller.Elements.SwitchColor , {
+			Element = SectionText_2,
+			Property = 'TextColor3'
+		});
+
+		SectionClose_2.Name = Compkiller:_RandomString()
+		SectionClose_2.Parent = Header_2
+		SectionClose_2.AnchorPoint = Vector2.new(1, 0.5)
+		SectionClose_2.BackgroundTransparency = 1.000
+		SectionClose_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		SectionClose_2.BorderSizePixel = 0
+		SectionClose_2.Position = UDim2.new(1, -12, 0.5, 0)
+		SectionClose_2.Size = UDim2.new(0, 17, 0, 17)
+		SectionClose_2.ZIndex = 10
+		SectionClose_2.Image = Compkiller:CacheImage("rbxassetid://109535175596957")
+		SectionClose_2.ImageTransparency = 0.500
+
+		Frame.Parent = SendMessagePanel
+		Frame.AnchorPoint = Vector2.new(0.5, 0)
+		Frame.BackgroundColor3 = Compkiller.Colors.BlockColor
+
+		table.insert(Compkiller.Elements.BlockColor , {
+			Element = Frame,
+			Property = "BackgroundColor3"
+		});
+
+		Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Frame.BorderSizePixel = 0
+		Frame.Position = UDim2.new(0.5, 0, 0, 35)
+		Frame.Size = UDim2.new(1, -20, 0, 20)
+		Frame.ZIndex = 15
+
+		UIStroke_3.Color = Compkiller.Colors.StrokeColor
+		UIStroke_3.Parent = Frame
+
+		table.insert(Compkiller.Elements.StrokeColor,{
+			Element = UIStroke_3,
+			Property = "Color"
+		});
+
+		UICorner_3.CornerRadius = UDim.new(0, 4)
+		UICorner_3.Parent = Frame
+
+		TextBox.Parent = Frame
+		TextBox.AnchorPoint = Vector2.new(0.5, 0.5)
+		TextBox.BackgroundTransparency = 1.000
+		TextBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		TextBox.BorderSizePixel = 0
+		TextBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+		TextBox.Size = UDim2.new(1, -15, 1, -2)
+		TextBox.ZIndex = 15
+		TextBox.ClearTextOnFocus = false
+		TextBox.Font = Enum.Font.GothamMedium
+		TextBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+		TextBox.PlaceholderText = "Type message..."
+		TextBox.Text = ""
+		TextBox.TextColor3 = Compkiller.Colors.SwitchColor
+		TextBox.TextSize = 12.000
+		TextBox.TextXAlignment = Enum.TextXAlignment.Left
+
+		table.insert(Compkiller.Elements.SwitchColor , {
+			Element = TextBox,
+			Property = 'TextColor3'
+		});
+
+		Button.Name = Compkiller:_RandomString()
+		Button.Parent = SendMessagePanel
+		Button.AnchorPoint = Vector2.new(0.5, 0)
+		Button.BackgroundColor3 = Compkiller.Colors.SwitchColor
+		Button.BackgroundTransparency = 1.000
+		Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Button.BorderSizePixel = 0
+		Button.Position = UDim2.new(0.5, 0, 0, 60)
+		Button.Size = UDim2.new(1, -7, 0, 25)
+		Button.ZIndex = 10
+
+
+		Frame_2.Parent = Button
+		Frame_2.AnchorPoint = Vector2.new(0.5, 0.5)
+		Frame_2.BackgroundColor3 = Compkiller.Colors.Highlight
+		Frame_2.BackgroundTransparency = 0.100
+		Frame_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Frame_2.BorderSizePixel = 0
+		Frame_2.Position = UDim2.new(0.5, 0, 0.5, 0)
+		Frame_2.Size = UDim2.new(1, -15, 1, -5)
+		Frame_2.ZIndex = 9
+
+		table.insert(Compkiller.Elements.Highlight,{
+			Element = Frame_2,
+			Property = "BackgroundColor3"
+		});
+
+		UIStroke_4.Color = Compkiller.Colors.StrokeColor
+		UIStroke_4.Parent = Frame_2
+
+		table.insert(Compkiller.Elements.StrokeColor,{
+			Element = UIStroke_4,
+			Property = "Color"
+		});
+
+		UICorner_4.CornerRadius = UDim.new(0, 3)
+		UICorner_4.Parent = Frame_2
+
+		TextLabel.Parent = Frame_2
+		TextLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+		TextLabel.BackgroundTransparency = 1.000
+		TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		TextLabel.BorderSizePixel = 0
+		TextLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+		TextLabel.Size = UDim2.new(1, 0, 1, 0)
+		TextLabel.ZIndex = 10
+		TextLabel.Font = Enum.Font.GothamMedium
+		TextLabel.Text = "Send Message"
+		TextLabel.TextColor3 = Compkiller.Colors.SwitchColor
+		TextLabel.TextSize = 12.000
+		TextLabel.TextStrokeTransparency = 0.900
+
+		table.insert(Compkiller.Elements.SwitchColor , {
+			Element = TextLabel,
+			Property = 'TextColor3'
+		});
+
+		local Tween = TweenInfo.new(0.35,Enum.EasingStyle.Quint);
+
+		local TabOpen = function(bool)
 			if bool then
-				Compkiller:_Animation(Icon,TransTween,{
+
+				WindowArgs.SelectedTab = TabButton;
+
+				Compkiller:_Animation(Icon,Tween,{
 					ImageTransparency = 0,
-					ImageColor3 = Compkiller.Colors.SwitchColor
 				});
 
-				Compkiller:_Animation(TabNameLabel,TransTween,{
+				Compkiller:_Animation(TabNameLabel,Tween,{
+					TextTransparency = 0
+				});
+
+				Compkiller:_Animation(Highlight,Tween,{
+					BackgroundTransparency = 0.925
+				});
+
+				--
+
+				Compkiller:_Animation(ChatLog,Tween,{
+					BackgroundTransparency = 0,
+				});
+
+				Compkiller:_Animation(SendMessagePanel,Tween,{
+					BackgroundTransparency = 0,
+				});
+
+				Compkiller:_Animation(UIStroke_4,Tween,{
+					Transparency = 0,
+				});
+
+				Compkiller:_Animation(UIStroke_3,Tween,{
+					Transparency = 0,
+				});
+
+				Compkiller:_Animation(UIStroke_2,Tween,{
+					Transparency = 0,
+				});
+
+				Compkiller:_Animation(UIStroke,Tween,{
+					Transparency = 0,
+				});
+
+				Compkiller:_Animation(SectionText,Tween,{
+					TextTransparency = 0.5
+				});
+
+				Compkiller:_Animation(TextLabel,Tween,{
 					TextTransparency = 0,
-					TextColor3 = Compkiller.Colors.SwitchColor
+					TextStrokeTransparency = 0.9
 				});
 
-				Compkiller:_Animation(Highlight,TransTween,{
-					BackgroundTransparency = 0.8
+				Compkiller:_Animation(Frame_2,Tween,{
+					BackgroundTransparency = 0.1,
 				});
-				
-				TabSocial.Visible = true
-				TabOpenSignal:Fire(true)
+
+				Compkiller:_Animation(BlockLine,Tween,{
+					BackgroundTransparency = 0.5,
+				});
+
+				Compkiller:_Animation(Frame,Tween,{
+					BackgroundTransparency = 0,
+				});
+
+				Compkiller:_Animation(SectionText_2,Tween,{
+					TextTransparency = 0.5
+				});
+
+				Compkiller:_Animation(TextBox,Tween,{
+					TextTransparency = 0
+				});
+
+				Compkiller:_Animation(SectionClose,Tween,{
+					ImageTransparency = 0.5,
+				});
+
+				Compkiller:_Animation(SectionClose_2,Tween,{
+					ImageTransparency = 0.5,
+				});
+
+				if not TabSocial.Visible then
+					TabSocial.Visible = true;
+					TabSocial.Position = UDim2.new(0.5, 0, 0.5, 15)
+				end
+				Compkiller:_SetNilP(TabSocial , TabMainFrame);
+				Compkiller:_Animation(TabSocial,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
 			else
-				Compkiller:_Animation(Icon,TransTween,{
-					ImageTransparency = 0.6,
-					ImageColor3 = Compkiller.Colors.Highlight
+				Compkiller:_Animation(Icon,Tween,{
+					ImageTransparency = 0.5
 				});
 
-				Compkiller:_Animation(TabNameLabel,TransTween,{
-					TextTransparency = 0.6,
-					TextColor3 = Compkiller.Colors.SwitchColor
+				Compkiller:_Animation(TabNameLabel,Tween,{
+					TextTransparency = 0.5
 				});
 
-				Compkiller:_Animation(Highlight,TransTween,{
+				Compkiller:_Animation(Highlight,Tween,{
 					BackgroundTransparency = 1
 				});
 
-				TabSocial.Visible = false
-				TabOpenSignal:Fire(false)
+				--
+
+				Compkiller:_Animation(ChatLog,Tween,{
+					BackgroundTransparency = 1,
+				});
+
+				Compkiller:_Animation(SendMessagePanel,Tween,{
+					BackgroundTransparency = 1,
+				});
+
+				Compkiller:_Animation(UIStroke_4,Tween,{
+					Transparency = 1,
+				});
+
+				Compkiller:_Animation(UIStroke_3,Tween,{
+					Transparency = 1,
+				});
+
+				Compkiller:_Animation(UIStroke_2,Tween,{
+					Transparency = 1,
+				});
+
+				Compkiller:_Animation(UIStroke,Tween,{
+					Transparency = 1,
+				});
+
+				Compkiller:_Animation(SectionText,Tween,{
+					TextTransparency = 1
+				});
+
+				Compkiller:_Animation(TextLabel,Tween,{
+					TextTransparency = 1,
+					TextStrokeTransparency = 1
+				});
+
+				Compkiller:_Animation(Frame_2,Tween,{
+					BackgroundTransparency = 1,
+				});
+
+				Compkiller:_Animation(BlockLine,Tween,{
+					BackgroundTransparency = 1,
+				});
+
+				Compkiller:_Animation(Frame,Tween,{
+					BackgroundTransparency = 1,
+				});
+
+				Compkiller:_Animation(SectionText_2,Tween,{
+					TextTransparency = 1
+				});
+
+				Compkiller:_Animation(TextBox,Tween,{
+					TextTransparency = 1
+				});
+
+				Compkiller:_Animation(SectionClose,Tween,{
+					ImageTransparency = 1,
+				});
+
+				Compkiller:_Animation(SectionClose_2,Tween,{
+					ImageTransparency = 1,
+				});
+
+				Compkiller:_Animation(TabSocial,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15)})
+				task.delay(0.35, function()
+					if WindowArgs.SelectedTab ~= TabButton then
+						TabSocial.Visible = false;
+						if Compkiller.PerformanceMode then
+							Compkiller:_SetNilP(TabSocial , nil);
+						end
+					end
+				end)
 			end;
 		end;
-
-		local InternalSignal = Instance.new("BindableEvent");
-		local Id = {
-			Root = TabButton,
-			Remote = InternalSignal
-		};
-
-		InternalSignal.Event:Connect(ToggleUI)
 
 		if not WindowArgs.Tabs[1] then
-			WindowArgs.__Current = Id;
-			InternalSignal:Fire(true)
+			TabOpenSignal:Fire(true);
+			TabOpen(true);
+		else
+			TabOpen(false);
 		end;
 
-		table.insert(WindowArgs.Tabs, Id);
+		table.insert(WindowArgs.Tabs , {
+			Root = TabButton,
+			Remote = TabOpenSignal
+		});
 
-		TabButton.MouseEnter:Connect(function()
-			if WindowArgs.__Current ~= Id then
-				Compkiller:_Animation(Highlight,TweenInfo.new(0.2,Enum.EasingStyle.Quint),{
-					BackgroundTransparency = 0.95
+		Compkiller:_Hover(TabButton,function()
+			if WindowArgs.SelectedTab ~= TabButton then
+				Compkiller:_Animation(Icon,Tween,{
+					ImageTransparency = 0.1
+				});
+
+				Compkiller:_Animation(TabNameLabel,Tween,{
+					TextTransparency = 0.1
 				});
 			end;
-		end);
+		end , function()
+			if WindowArgs.SelectedTab ~= TabButton then
+				Compkiller:_Animation(Icon,Tween,{
+					ImageTransparency = 0.5
+				});
 
-		TabButton.MouseLeave:Connect(function()
-			if WindowArgs.__Current ~= Id then
-				Compkiller:_Animation(Highlight,TweenInfo.new(0.2,Enum.EasingStyle.Quint),{
-					BackgroundTransparency = 1
+				Compkiller:_Animation(TabNameLabel,Tween,{
+					TextTransparency = 0.5
+				});
+			end;
+		end)
+
+		TabOpenSignal:Connect(TabOpen);
+
+
+
+
+
+
+
+		TabHover:Connect(function(bool)
+			if bool then
+				Compkiller:_Animation(TabButton,Tween,{
+					Size = UDim2.new(1, -10, 0, 32)
+				});
+
+				Compkiller:_Animation(Icon,Tween,{
+					Size = UDim2.new(0, 16, 0, 16),
+				});
+
+				Compkiller:_Animation(TabNameLabel,Tween,{
+					Size = UDim2.new(0, 200, 0, 25),
+					Position = UDim2.new(0, 43, 0.5, 0)
+				});
+
+				Compkiller:_Animation(UICorner,Tween,{
+					CornerRadius = UDim.new(0, 4)
+				});
+
+				Compkiller:_Animation(Highlight,Tween,{
+					Size = UDim2.new(1, -17, 1, 0),
+					Position = UDim2.new(0.5, 0, 0.5, 0)
+				});
+			else
+				Compkiller:_Animation(UICorner,Tween,{
+					CornerRadius = UDim.new(0, 10)
+				});
+
+				Compkiller:_Animation(TabButton,Tween,{
+					Size = UDim2.new(1, -10, 0, 32)
+				});
+
+				Compkiller:_Animation(Icon,Tween,{
+					Size = UDim2.new(0, 16, 0, 16),
+				});
+
+				Compkiller:_Animation(TabNameLabel,Tween,{
+					Size = UDim2.new(0, 200, 0, 25),
+					Position = UDim2.new(0, 80, 0.5, 0)
+				});
+
+				Compkiller:_Animation(Highlight,Tween,{
+					Size = UDim2.new(1, -10,1, 5),
+					Position = UDim2.new(0.5, 0, 0.5, 0)
 				});
 			end;
 		end);
 
 		Compkiller:_Input(TabButton,function()
+			if WindowArgs.SelectedTab == TabButton then return end;
+			if WindowArgs.__SwitchingTab then return end;
+			WindowArgs.__SwitchingTab = true;
+
+			WindowArgs.SelectedTab = TabButton; -- update immediately to prevent race conditions with task.delay(0.35)
+
 			for i,v in next, WindowArgs.Tabs do
-				if v.Root == TabButton then
-					v.Remote:Fire(true);
-				else
+				if v.Root ~= TabButton then
 					v.Remote:Fire(false);
 				end;
 			end;
+			
+			task.wait(0.35);
+
+			for i,v in next, WindowArgs.Tabs do
+				if v.Root == TabButton then
+					v.Remote:Fire(true);
+				end;
+			end;
+
+			WindowArgs.__SwitchingTab = false;
 		end);
 
-        function TabArgs:AddMessage(Sender, Text)
+		local ChatLogOpen = true
+		local SendMessagePanelOpen = true
+		
+		local function updateConfigLayout()
+			local AnimTween = TweenInfo.new(0.35,Enum.EasingStyle.Quint)
+			if ChatLogOpen and SendMessagePanelOpen then
+				Compkiller:_Animation(ChatLog, AnimTween, {Size = UDim2.new(1, 0, 1, -105)})
+				Compkiller:_Animation(SendMessagePanel, AnimTween, {Size = UDim2.new(1, 0, 0, 95)})
+				Compkiller:_Animation(SectionClose, AnimTween, {Rotation = 0})
+				Compkiller:_Animation(SectionClose_2, AnimTween, {Rotation = 0})
+			elseif ChatLogOpen and not SendMessagePanelOpen then
+				Compkiller:_Animation(ChatLog, AnimTween, {Size = UDim2.new(1, 0, 1, -45)})
+				Compkiller:_Animation(SendMessagePanel, AnimTween, {Size = UDim2.new(1, 0, 0, 35)})
+				Compkiller:_Animation(SectionClose, AnimTween, {Rotation = 0})
+				Compkiller:_Animation(SectionClose_2, AnimTween, {Rotation = -180})
+			elseif not ChatLogOpen and SendMessagePanelOpen then
+				Compkiller:_Animation(ChatLog, AnimTween, {Size = UDim2.new(1, 0, 0, 35)})
+				Compkiller:_Animation(SendMessagePanel, AnimTween, {Size = UDim2.new(1, 0, 1, -45)})
+				Compkiller:_Animation(SectionClose, AnimTween, {Rotation = -180})
+				Compkiller:_Animation(SectionClose_2, AnimTween, {Rotation = 0})
+			else
+				Compkiller:_Animation(ChatLog, AnimTween, {Size = UDim2.new(1, 0, 0, 35)})
+				Compkiller:_Animation(SendMessagePanel, AnimTween, {Size = UDim2.new(1, 0, 0, 35)})
+				Compkiller:_Animation(SectionClose, AnimTween, {Rotation = -180})
+				Compkiller:_Animation(SectionClose_2, AnimTween, {Rotation = -180})
+			end
+		end
+
+		Compkiller:_Input(Header, function()
+			ChatLogOpen = not ChatLogOpen
+			updateConfigLayout()
+		end)
+
+		Compkiller:_Input(Header_2, function()
+			SendMessagePanelOpen = not SendMessagePanelOpen
+			updateConfigLayout()
+		end)
+
+		
+		function TabArgs:AddMessage(Sender, Text)
             local MsgFrame = Instance.new("Frame")
             local MsgText = Instance.new("TextLabel")
 
             MsgFrame.Name = Compkiller:_RandomString()
-            MsgFrame.Parent = ChatLog
+            MsgFrame.Parent = ScrollingFrame
             MsgFrame.BackgroundTransparency = 1
             MsgFrame.Size = UDim2.new(1, 0, 0, 20)
 
@@ -9064,24 +9605,19 @@ function Compkiller.new(Config : Window)
                 Property = "TextColor3"
             })
 
-            -- Auto resize height based on text length
-            local bounds = game:GetService("TextService"):GetTextSize(MsgText.Text, 13, Enum.Font.GothamMedium, Vector2.new(ChatLog.AbsoluteSize.X, math.huge))
+            local bounds = game:GetService("TextService"):GetTextSize(MsgText.Text, 13, Enum.Font.GothamMedium, Vector2.new(ScrollingFrame.AbsoluteSize.X, math.huge))
             MsgFrame.Size = UDim2.new(1, 0, 0, math.max(20, bounds.Y))
 
-            -- Update CanvasSize
-            ChatLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-                ChatLog.CanvasSize = UDim2.new(0, 0, 0, ChatLayout.AbsoluteContentSize.Y)
-                ChatLog.CanvasPosition = Vector2.new(0, ChatLayout.AbsoluteContentSize.Y)
-            end)
-            ChatLog.CanvasSize = UDim2.new(0, 0, 0, ChatLayout.AbsoluteContentSize.Y)
-            ChatLog.CanvasPosition = Vector2.new(0, ChatLayout.AbsoluteContentSize.Y)
+            ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
+            ScrollingFrame.CanvasPosition = Vector2.new(0, UIListLayout.AbsoluteContentSize.Y)
         end
         
-        SendButton.MouseButton1Click:Connect(function()
-            local text = MessageBox.Text
-            if text and text ~= "" then
-                -- For now it doesn't do anything, just clears the box
-                MessageBox.Text = ""
+        Button.InputBegan:Connect(function(inp)
+            if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+                local text = TextBox.Text
+                if text and text ~= "" then
+                    TextBox.Text = ""
+                end
             end
         end)
 
@@ -9102,7 +9638,7 @@ function Compkiller.new(Config : Window)
 
 		if Internal then
 
-			local TabContent = Instance.new("Frame")
+			local TabContent = Instance.new("CanvasGroup")
 			local Left = Instance.new("ScrollingFrame")
 			local UIListLayout = Instance.new("UIListLayout")
 			local Right = Instance.new("ScrollingFrame")
@@ -9300,7 +9836,7 @@ function Compkiller.new(Config : Window)
 			UICorner.CornerRadius = UDim.new(0, 4)
 			UICorner.Parent = Highlight
 
-			local TabContent = Instance.new("Frame")
+			local TabContent = Instance.new("CanvasGroup")
 			local Left = Instance.new("ScrollingFrame")
 			local UIListLayout = Instance.new("UIListLayout")
 			local Right = Instance.new("ScrollingFrame")
@@ -9414,7 +9950,7 @@ function Compkiller.new(Config : Window)
 						TabContent.Position = UDim2.new(0.5, 0, 0.5, 15)
 					end
 					Compkiller:_SetNilP(TabContent , TabMainFrame);
-					Compkiller:_Animation(TabContent,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
+					Compkiller:_Animation(TabContent,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0), GroupTransparency = 0})
 				else
 					Compkiller:_Animation(Icon,Tween,{
 						ImageTransparency = 0.5
@@ -9428,7 +9964,7 @@ function Compkiller.new(Config : Window)
 						BackgroundTransparency = 1
 					});
 
-					Compkiller:_Animation(TabContent,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15)})
+					Compkiller:_Animation(TabContent,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15), GroupTransparency = 1})
 					task.delay(0.35, function()
 						if WindowArgs.SelectedTab ~= TabButton then
 							TabContent.Visible = false;
@@ -9525,14 +10061,28 @@ function Compkiller.new(Config : Window)
 			end);
 
 			Compkiller:_Input(TabButton,function()
-				for i,v in next, WindowArgs.Tabs do
-					if v.Root == TabButton then
-						v.Remote:Fire(true);
-					else
-						v.Remote:Fire(false);
-					end;
+			if WindowArgs.SelectedTab == TabButton then return end;
+			if WindowArgs.__SwitchingTab then return end;
+			WindowArgs.__SwitchingTab = true;
+
+			WindowArgs.SelectedTab = TabButton; -- update immediately to prevent race conditions with task.delay(0.35)
+
+			for i,v in next, WindowArgs.Tabs do
+				if v.Root ~= TabButton then
+					v.Remote:Fire(false);
 				end;
-			end);
+			end;
+			
+			task.wait(0.35);
+
+			for i,v in next, WindowArgs.Tabs do
+				if v.Root == TabButton then
+					v.Remote:Fire(true);
+				end;
+			end;
+
+			WindowArgs.__SwitchingTab = false;
+		end);
 		end;
 
 		function TabArgs:_UpdateScrolling(Frame: ScrollingFrame , ListLayout: UIListLayout)
@@ -10563,19 +11113,23 @@ function Compkiller:ConfigManager(ConfigManager: ConfigManager) : ConfigFunction
 		if isfile(_path) then
 			local info = readfile(_path);
 
-			local decoded = HttpService:JSONDecode(info);
+			local success, decoded = pcall(function()
+				return HttpService:JSONDecode(info);
+			end)
 
-			return decoded.__INFORMATION;
+			if success and decoded and decoded.__INFORMATION then
+				return decoded.__INFORMATION;
+			end
 		end;
 
-		return false;
+		return { Author = "Unknown", Name = ConfigName };
 	end;
 
 	function Args:GetConfigs()
 		local names = {};
 
 		for i,v in next , listfiles(Args.Directory) do
-			local Name = string.sub(v , #Args.Directory + 2);
+			local Name = string.match(v, "[^\\/]+$") or v;
 
 			table.insert(names , Name);
 		end;
@@ -10587,7 +11141,7 @@ function Compkiller:ConfigManager(ConfigManager: ConfigManager) : ConfigFunction
 		local names = {};
 
 		for i,v in next , listfiles(Args.Directory) do
-			local Name = string.sub(v , #Args.Directory + 2);
+			local Name = string.match(v, "[^\\/]+$") or v;
 			local Info = Args:ReadInfo(Name);
 
 			table.insert(names , {
