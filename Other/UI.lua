@@ -7639,7 +7639,7 @@ function Compkiller.new(Config : Window)
 		TabConfig.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabConfig.BorderSizePixel = 0
 		TabConfig.Position = UDim2.new(0.5, 0, 0.5, 0)
-		TabConfig.Size = UDim2.new(1, -5, 1, -5)
+		TabConfig.Size = UDim2.new(1, -12, 1, -12)
 		TabConfig.ZIndex = 6
 
 		ConfigList.Name = Compkiller:_RandomString()
@@ -7860,21 +7860,6 @@ function Compkiller.new(Config : Window)
 		Button.Size = UDim2.new(1, -7, 0, 25)
 		Button.ZIndex = 10
 
-		BlockLine.Name = Compkiller:_RandomString()
-		BlockLine.Parent = AddConfig
-		BlockLine.AnchorPoint = Vector2.new(0.5, 1)
-		BlockLine.BackgroundColor3 = Compkiller.Colors.LineColor
-		BlockLine.BackgroundTransparency = 0.500
-		BlockLine.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		BlockLine.BorderSizePixel = 0
-		BlockLine.Position = UDim2.new(0.5, 0, 0.5, 12)
-		BlockLine.Size = UDim2.new(1, -26, 0, 1)
-		BlockLine.ZIndex = 12
-
-		table.insert(Compkiller.Elements.LineColor,{
-			Element = BlockLine,
-			Property = "BackgroundColor3"
-		});
 
 		Frame_2.Parent = Button
 		Frame_2.AnchorPoint = Vector2.new(0.5, 0.5)
