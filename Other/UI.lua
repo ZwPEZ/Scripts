@@ -8812,10 +8812,10 @@ function Compkiller.new(Config : Window)
 		Icon.Position = UDim2.new(0, 6, 0.5, 0)
 		Icon.Size = UDim2.new(0, 15, 0, 15)
 		Icon.Image = Compkiller:CacheImage("rbxassetid://10723405649") -- Message-circle icon
-		Icon.ImageColor3 = Compkiller.Colors.DisabledColor
+		Icon.ImageColor3 = Compkiller.Colors.Highlight
 		Icon.ImageTransparency = 0.600
 
-		table.insert(Compkiller.Elements.DisabledColor,{
+		table.insert(Compkiller.Elements.Highlight,{
 			Element = Icon,
 			Property = "ImageColor3"
 		});
@@ -8830,12 +8830,12 @@ function Compkiller.new(Config : Window)
 		TabNameLabel.Size = UDim2.new(1, -27, 1, 0)
 		TabNameLabel.Font = Enum.Font.GothamMedium
 		TabNameLabel.Text = Configuration.Name
-		TabNameLabel.TextColor3 = Compkiller.Colors.DisabledColor
+		TabNameLabel.TextColor3 = Compkiller.Colors.SwitchColor
 		TabNameLabel.TextSize = 13.000
 		TabNameLabel.TextTransparency = 0.600
 		TabNameLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-		table.insert(Compkiller.Elements.DisabledColor,{
+		table.insert(Compkiller.Elements.SwitchColor,{
 			Element = TabNameLabel,
 			Property = "TextColor3"
 		});
@@ -8981,12 +8981,12 @@ function Compkiller.new(Config : Window)
 			else
 				Compkiller:_Animation(Icon,TransTween,{
 					ImageTransparency = 0.6,
-					ImageColor3 = Compkiller.Colors.DisabledColor
+					ImageColor3 = Compkiller.Colors.Highlight
 				});
 
 				Compkiller:_Animation(TabNameLabel,TransTween,{
 					TextTransparency = 0.6,
-					TextColor3 = Compkiller.Colors.DisabledColor
+					TextColor3 = Compkiller.Colors.SwitchColor
 				});
 
 				Compkiller:_Animation(Highlight,TransTween,{
