@@ -7155,25 +7155,6 @@ function Compkiller.new(Config : Window)
 		UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 		UIListLayout.Padding = UDim.new(0, 10)
 
-		-- Functions --
-		Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
-			if Highlight.BackgroundTransparency <= 0.99 then
-				ContainerTab.Visible = true;
-			else
-				ContainerTab.Visible = false;
-			end;
-
-			if Compkiller.PerformanceMode then
-				if ContainerTab.Visible then
-					Compkiller:_SetNilP(ContainerTab , TabMainFrame);
-				else
-					Compkiller:_SetNilP(ContainerTab , nil);
-				end;
-			else
-				Compkiller:_SetNilP(ContainerTab , TabMainFrame);
-			end;
-		end);
-
 		local TabOpen = function(bool)
 			if bool then
 				WindowArgs.SelectedTab = TabButton;
@@ -7195,6 +7176,13 @@ function Compkiller.new(Config : Window)
 						v.Remote:Fire(true);
 					end;
 				end;
+
+				if not ContainerTab.Visible then
+					ContainerTab.Visible = true;
+					ContainerTab.Position = UDim2.new(0.5, 0, 0.5, 15)
+				end
+				Compkiller:_SetNilP(ContainerTab , TabMainFrame);
+				Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
 			else
 				Compkiller:_Animation(Icon,Tween,{
 					ImageTransparency = 0.5
@@ -7211,6 +7199,16 @@ function Compkiller.new(Config : Window)
 				for i,v in next , TabArgs.Tabs do
 					v.Remote:Fire(false);
 				end;
+
+				Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15)})
+				task.delay(0.35, function()
+					if WindowArgs.SelectedTab ~= TabButton then
+						ContainerTab.Visible = false;
+						if Compkiller.PerformanceMode then
+							Compkiller:_SetNilP(ContainerTab , nil);
+						end
+					end
+				end)
 			end;
 		end;
 
@@ -7927,25 +7925,6 @@ function Compkiller.new(Config : Window)
 
 		local Tween = TweenInfo.new(0.35,Enum.EasingStyle.Quint);
 
-		Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
-			if Highlight.BackgroundTransparency <= 0.99 then
-				TabConfig.Visible = true;
-			else
-				TabConfig.Visible = false;
-			end;
-
-			if Compkiller.PerformanceMode then
-				if TabConfig.Visible then
-					Compkiller:_SetNilP(TabConfig , TabMainFrame);
-				else
-					Compkiller:_SetNilP(TabConfig , nil);
-				end;
-			else
-				Compkiller:_SetNilP(TabConfig , TabMainFrame);
-			end;
-
-		end)
-
 		local TabOpen = function(bool)
 			if bool then
 
@@ -8025,6 +8004,13 @@ function Compkiller.new(Config : Window)
 				Compkiller:_Animation(SectionClose_2,Tween,{
 					ImageTransparency = 0.5,
 				});
+
+				if not TabConfig.Visible then
+					TabConfig.Visible = true;
+					TabConfig.Position = UDim2.new(0.5, 0, 0.5, 15)
+				end
+				Compkiller:_SetNilP(TabConfig , TabMainFrame);
+				Compkiller:_Animation(TabConfig,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
 			else
 				Compkiller:_Animation(Icon,Tween,{
 					ImageTransparency = 0.5
@@ -8100,6 +8086,16 @@ function Compkiller.new(Config : Window)
 				Compkiller:_Animation(SectionClose_2,Tween,{
 					ImageTransparency = 1,
 				});
+
+				Compkiller:_Animation(TabConfig,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15)})
+				task.delay(0.35, function()
+					if WindowArgs.SelectedTab ~= TabButton then
+						TabConfig.Visible = false;
+						if Compkiller.PerformanceMode then
+							Compkiller:_SetNilP(TabConfig , nil);
+						end
+					end
+				end)
 			end;
 		end;
 
@@ -9017,24 +9013,6 @@ function Compkiller.new(Config : Window)
 
 			local Tween = TweenInfo.new(0.35,Enum.EasingStyle.Quint);
 
-			Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
-				if Highlight.BackgroundTransparency <= 0.99 then
-					TabContent.Visible = true;
-				else
-					TabContent.Visible = false;
-				end;
-
-				if Compkiller.PerformanceMode then
-					if TabContent.Visible then
-						Compkiller:_SetNilP(TabContent , TabMainFrame);
-					else
-						Compkiller:_SetNilP(TabContent , nil);
-					end;
-				else
-					Compkiller:_SetNilP(TabContent , TabMainFrame);
-				end;
-			end)
-
 			local TabOpen = function(bool)
 				if bool then
 
@@ -9051,6 +9029,13 @@ function Compkiller.new(Config : Window)
 					Compkiller:_Animation(Highlight,Tween,{
 						BackgroundTransparency = 0.925
 					});
+
+					if not TabContent.Visible then
+						TabContent.Visible = true;
+						TabContent.Position = UDim2.new(0.5, 0, 0.5, 15)
+					end
+					Compkiller:_SetNilP(TabContent , TabMainFrame);
+					Compkiller:_Animation(TabContent,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
 				else
 					Compkiller:_Animation(Icon,Tween,{
 						ImageTransparency = 0.5
@@ -9063,6 +9048,16 @@ function Compkiller.new(Config : Window)
 					Compkiller:_Animation(Highlight,Tween,{
 						BackgroundTransparency = 1
 					});
+
+					Compkiller:_Animation(TabContent,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15)})
+					task.delay(0.35, function()
+						if WindowArgs.SelectedTab ~= TabButton then
+							TabContent.Visible = false;
+							if Compkiller.PerformanceMode then
+								Compkiller:_SetNilP(TabContent , nil);
+							end
+						end
+					end)
 				end;
 			end;
 
