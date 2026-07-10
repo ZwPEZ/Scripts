@@ -7746,7 +7746,7 @@ function Compkiller.new(Config : Window)
 		AddConfig.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		AddConfig.BorderSizePixel = 0
 		AddConfig.Position = UDim2.new(0.5, 0, 1, -5)
-		AddConfig.Size = UDim2.new(1, -10, 0, 95)
+		AddConfig.Size = UDim2.new(1, 0, 0, 95)
 		AddConfig.ZIndex = 9
 
 		UICorner_2.CornerRadius = UDim.new(0, 6)
@@ -9450,7 +9450,7 @@ function Compkiller.new(Config : Window)
 
 				for i, v in ipairs(Elements) do
 					for _, child in ipairs(v:GetChildren()) do
-						if child:IsA("Frame") and child.Size.Y.Offset == 1 and child.BackgroundTransparency == 0.5 then
+						if child:IsA("Frame") and child.Size.Y.Offset == 1 and child.Size.X.Offset == -26 then
 							child.Visible = (i ~= #Elements)
 						end
 					end
