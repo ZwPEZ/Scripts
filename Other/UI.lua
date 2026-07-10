@@ -9335,28 +9335,6 @@ function Compkiller.new(Config : Window)
 			SectionClose.Image = Compkiller:CacheImage("rbxassetid://109535175596957")
 			SectionClose.ImageTransparency = 0.500
 
-			if WindowArgs.SelectedTab ~= TabArgs.__Current.Root then
-				Section.BackgroundTransparency = 1
-				UIStroke.Transparency = 1
-				SectionText.TextTransparency = 1
-				SectionClose.ImageTransparency = 1
-			end
-
-			local TabTween = TweenInfo.new(0.35,Enum.EasingStyle.Quint)
-			TabArgs.__Current.Remote:Connect(function(bool)
-				if bool then
-					Compkiller:_Animation(Section,TabTween,{BackgroundTransparency = 0})
-					Compkiller:_Animation(UIStroke,TabTween,{Transparency = 0})
-					Compkiller:_Animation(SectionText,TabTween,{TextTransparency = 0.5})
-					Compkiller:_Animation(SectionClose,TabTween,{ImageTransparency = 0.5})
-				else
-					Compkiller:_Animation(Section,TabTween,{BackgroundTransparency = 1})
-					Compkiller:_Animation(UIStroke,TabTween,{Transparency = 1})
-					Compkiller:_Animation(SectionText,TabTween,{TextTransparency = 1})
-					Compkiller:_Animation(SectionClose,TabTween,{ImageTransparency = 1})
-				end
-			end)
-
 			if not SectionText.Text:byte() then
 				Header.Visible = false;
 			else
@@ -9489,29 +9467,32 @@ function Compkiller.new(Config : Window)
 				refresh()
 			end);
 
+			local TabTween = TweenInfo.new(0.35,Enum.EasingStyle.Quint);
 			TabOpenSignal:Connect(function(bool)
 				if bool then
-					Compkiller:_Animation(Section,TweenInfo.new(0.21),{
+					Compkiller:_Animation(Section,TabTween,{
 						BackgroundTransparency = 0
 					})
-
-					Compkiller:_Animation(SectionText,TweenInfo.new(0.21),{
+					Compkiller:_Animation(UIStroke,TabTween,{
+						Transparency = 0
+					})
+					Compkiller:_Animation(SectionText,TabTween,{
 						TextTransparency = 0.500
 					})
-
-					Compkiller:_Animation(SectionClose,TweenInfo.new(0.21),{
+					Compkiller:_Animation(SectionClose,TabTween,{
 						ImageTransparency = 0.500
 					})
 				else
-					Compkiller:_Animation(Section,TweenInfo.new(0.21),{
+					Compkiller:_Animation(Section,TabTween,{
 						BackgroundTransparency = 1
 					})
-
-					Compkiller:_Animation(SectionText,TweenInfo.new(0.21),{
+					Compkiller:_Animation(UIStroke,TabTween,{
+						Transparency = 1
+					})
+					Compkiller:_Animation(SectionText,TabTween,{
 						TextTransparency = 1
 					})
-
-					Compkiller:_Animation(SectionClose,TweenInfo.new(0.21),{
+					Compkiller:_Animation(SectionClose,TabTween,{
 						ImageTransparency = 1
 					})
 				end;
