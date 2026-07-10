@@ -8775,6 +8775,319 @@ function Compkiller.new(Config : Window)
 		return TabArgs;
 	end;
 
+	function WindowArgs:DrawSocialUI(Configuration : TabConfigManager , Internal)
+		Configuration = Compkiller.__CONFIG(Configuration,{
+			Name = "Social",
+			Icon = "message-circle"
+		});
+
+		local TabOpenSignal = Compkiller.__SIGNAL(false);
+		local TabArgs = {};
+
+		-- Tab Button --
+		local TabButton = Instance.new("Frame")
+		local Icon = Instance.new("ImageLabel")
+		local TabNameLabel = Instance.new("TextLabel")
+		local Highlight = Instance.new("Frame")
+		local UICorner = Instance.new("UICorner")
+
+		if Compkiller:_IsMobile() then
+			Compkiller:_AddDragBlacklist(TabButton);
+		end;
+
+		TabButton.Name = Compkiller:_RandomString()
+		TabButton.Parent = TabButtonScrollingFrame
+		TabButton.BackgroundTransparency = 1.000
+		TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		TabButton.BorderSizePixel = 0
+		TabButton.Position = UDim2.new(0, 5, 0.407999992, 0)
+		TabButton.Size = UDim2.new(1, -10, 0, 30)
+
+		Icon.Name = Compkiller:_RandomString()
+		Icon.Parent = TabButton
+		Icon.AnchorPoint = Vector2.new(0, 0.5)
+		Icon.BackgroundTransparency = 1.000
+		Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Icon.BorderSizePixel = 0
+		Icon.Position = UDim2.new(0, 6, 0.5, 0)
+		Icon.Size = UDim2.new(0, 15, 0, 15)
+		Icon.Image = Compkiller:CacheImage("rbxassetid://10723405649") -- Message-circle icon
+		Icon.ImageColor3 = Compkiller.Colors.DisabledColor
+		Icon.ImageTransparency = 0.600
+
+		table.insert(Compkiller.Elements.DisabledColor,{
+			Element = Icon,
+			Property = "ImageColor3"
+		});
+
+		TabNameLabel.Name = Compkiller:_RandomString()
+		TabNameLabel.Parent = TabButton
+		TabNameLabel.AnchorPoint = Vector2.new(0, 0.5)
+		TabNameLabel.BackgroundTransparency = 1.000
+		TabNameLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		TabNameLabel.BorderSizePixel = 0
+		TabNameLabel.Position = UDim2.new(0, 27, 0.5, 0)
+		TabNameLabel.Size = UDim2.new(1, -27, 1, 0)
+		TabNameLabel.Font = Enum.Font.GothamMedium
+		TabNameLabel.Text = Configuration.Name
+		TabNameLabel.TextColor3 = Compkiller.Colors.DisabledColor
+		TabNameLabel.TextSize = 13.000
+		TabNameLabel.TextTransparency = 0.600
+		TabNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+		table.insert(Compkiller.Elements.DisabledColor,{
+			Element = TabNameLabel,
+			Property = "TextColor3"
+		});
+
+		Highlight.Name = Compkiller:_RandomString()
+		Highlight.Parent = TabButton
+		Highlight.BackgroundColor3 = Compkiller.Colors.Highlight
+		Highlight.BackgroundTransparency = 1.000
+		Highlight.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Highlight.BorderSizePixel = 0
+		Highlight.Size = UDim2.new(1, 0, 1, 0)
+
+		table.insert(Compkiller.Elements.Highlight,{
+			Element = Highlight,
+			Property = "BackgroundColor3"
+		});
+
+		UICorner.CornerRadius = UDim.new(0, 6)
+		UICorner.Parent = Highlight
+
+		-- Main Tab Setup --
+		local TabSocial = Instance.new("Frame")
+		
+		TabSocial.Name = Compkiller:_RandomString()
+		TabSocial.Parent = TabMainFrame
+		TabSocial.AnchorPoint = Vector2.new(0.5, 0.5)
+		TabSocial.BackgroundTransparency = 1.000
+		TabSocial.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		TabSocial.BorderSizePixel = 0
+		TabSocial.Position = UDim2.new(0.5, 0, 0.5, 0)
+		TabSocial.Size = UDim2.new(1, -15, 1, -15)
+		TabSocial.ZIndex = 6
+        TabSocial.Visible = false
+
+		-- Social Components --
+		local ChatLog = Instance.new("ScrollingFrame")
+		local ChatLayout = Instance.new("UIListLayout")
+		local InputFrame = Instance.new("Frame")
+		local InputCorner = Instance.new("UICorner")
+		local InputStroke = Instance.new("UIStroke")
+		local MessageBox = Instance.new("TextBox")
+		local SendButton = Instance.new("TextButton")
+		local SendCorner = Instance.new("UICorner")
+
+		ChatLog.Name = Compkiller:_RandomString()
+		ChatLog.Parent = TabSocial
+		ChatLog.Active = true
+		ChatLog.BackgroundTransparency = 1.000
+		ChatLog.BorderSizePixel = 0
+		ChatLog.Size = UDim2.new(1, 0, 1, -40)
+		ChatLog.CanvasSize = UDim2.new(0, 0, 0, 0)
+		ChatLog.ScrollBarThickness = 2
+        ChatLog.ScrollBarImageColor3 = Compkiller.Colors.Highlight
+        table.insert(Compkiller.Elements.Highlight,{
+            Element = ChatLog,
+            Property = "ScrollBarImageColor3"
+        })
+
+		ChatLayout.Parent = ChatLog
+		ChatLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		ChatLayout.Padding = UDim.new(0, 5)
+
+		InputFrame.Name = Compkiller:_RandomString()
+		InputFrame.Parent = TabSocial
+		InputFrame.AnchorPoint = Vector2.new(0, 1)
+		InputFrame.BackgroundColor3 = Compkiller.Colors.BlockColor
+		InputFrame.BorderSizePixel = 0
+		InputFrame.Position = UDim2.new(0, 0, 1, 0)
+		InputFrame.Size = UDim2.new(1, -70, 0, 30)
+
+        table.insert(Compkiller.Elements.BlockColor,{
+            Element = InputFrame,
+            Property = "BackgroundColor3"
+        })
+
+		InputCorner.CornerRadius = UDim.new(0, 4)
+		InputCorner.Parent = InputFrame
+
+		InputStroke.Color = Compkiller.Colors.StrokeColor
+		InputStroke.Parent = InputFrame
+        table.insert(Compkiller.Elements.StrokeColor,{
+            Element = InputStroke,
+            Property = "Color"
+        })
+
+		MessageBox.Name = Compkiller:_RandomString()
+		MessageBox.Parent = InputFrame
+		MessageBox.BackgroundTransparency = 1.000
+		MessageBox.Position = UDim2.new(0, 10, 0, 0)
+		MessageBox.Size = UDim2.new(1, -20, 1, 0)
+		MessageBox.Font = Enum.Font.GothamMedium
+		MessageBox.PlaceholderText = "Type message..."
+		MessageBox.Text = ""
+		MessageBox.TextColor3 = Compkiller.Colors.SwitchColor
+		MessageBox.TextSize = 13.000
+		MessageBox.TextXAlignment = Enum.TextXAlignment.Left
+        MessageBox.ClearTextOnFocus = false
+        table.insert(Compkiller.Elements.SwitchColor,{
+            Element = MessageBox,
+            Property = "TextColor3"
+        })
+
+		SendButton.Name = Compkiller:_RandomString()
+		SendButton.Parent = TabSocial
+		SendButton.AnchorPoint = Vector2.new(1, 1)
+		SendButton.BackgroundColor3 = Compkiller.Colors.Highlight
+		SendButton.BorderSizePixel = 0
+		SendButton.Position = UDim2.new(1, 0, 1, 0)
+		SendButton.Size = UDim2.new(0, 60, 0, 30)
+		SendButton.Font = Enum.Font.GothamBold
+		SendButton.Text = "Send"
+		SendButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+		SendButton.TextSize = 13.000
+
+        table.insert(Compkiller.Elements.Highlight,{
+            Element = SendButton,
+            Property = "BackgroundColor3"
+        })
+
+		SendCorner.CornerRadius = UDim.new(0, 4)
+		SendCorner.Parent = SendButton
+
+		local function ToggleUI(bool)
+			local TransTween = TweenInfo.new(0.35, Enum.EasingStyle.Quint)
+			
+			if bool then
+				Compkiller:_Animation(Icon,TransTween,{
+					ImageTransparency = 0,
+					ImageColor3 = Compkiller.Colors.SwitchColor
+				});
+
+				Compkiller:_Animation(TabNameLabel,TransTween,{
+					TextTransparency = 0,
+					TextColor3 = Compkiller.Colors.SwitchColor
+				});
+
+				Compkiller:_Animation(Highlight,TransTween,{
+					BackgroundTransparency = 0.8
+				});
+				
+				TabSocial.Visible = true
+				TabOpenSignal:Fire(true)
+			else
+				Compkiller:_Animation(Icon,TransTween,{
+					ImageTransparency = 0.6,
+					ImageColor3 = Compkiller.Colors.DisabledColor
+				});
+
+				Compkiller:_Animation(TabNameLabel,TransTween,{
+					TextTransparency = 0.6,
+					TextColor3 = Compkiller.Colors.DisabledColor
+				});
+
+				Compkiller:_Animation(Highlight,TransTween,{
+					BackgroundTransparency = 1
+				});
+
+				TabSocial.Visible = false
+				TabOpenSignal:Fire(false)
+			end;
+		end;
+
+		local InternalSignal = Instance.new("BindableEvent");
+		local Id = {
+			Root = TabButton,
+			Remote = InternalSignal
+		};
+
+		InternalSignal.Event:Connect(ToggleUI)
+
+		if not WindowArgs.Tabs[1] then
+			WindowArgs.__Current = Id;
+			InternalSignal:Fire(true)
+		end;
+
+		table.insert(WindowArgs.Tabs, Id);
+
+		TabButton.MouseEnter:Connect(function()
+			if WindowArgs.__Current ~= Id then
+				Compkiller:_Animation(Highlight,TweenInfo.new(0.2,Enum.EasingStyle.Quint),{
+					BackgroundTransparency = 0.95
+				});
+			end;
+		end);
+
+		TabButton.MouseLeave:Connect(function()
+			if WindowArgs.__Current ~= Id then
+				Compkiller:_Animation(Highlight,TweenInfo.new(0.2,Enum.EasingStyle.Quint),{
+					BackgroundTransparency = 1
+				});
+			end;
+		end);
+
+		Compkiller:_Input(TabButton,function()
+			for i,v in next, WindowArgs.Tabs do
+				if v.Root == TabButton then
+					v.Remote:Fire(true);
+				else
+					v.Remote:Fire(false);
+				end;
+			end;
+		end);
+
+        function TabArgs:AddMessage(Sender, Text)
+            local MsgFrame = Instance.new("Frame")
+            local MsgText = Instance.new("TextLabel")
+
+            MsgFrame.Name = Compkiller:_RandomString()
+            MsgFrame.Parent = ChatLog
+            MsgFrame.BackgroundTransparency = 1
+            MsgFrame.Size = UDim2.new(1, 0, 0, 20)
+
+            MsgText.Name = Compkiller:_RandomString()
+            MsgText.Parent = MsgFrame
+            MsgText.BackgroundTransparency = 1
+            MsgText.Size = UDim2.new(1, 0, 1, 0)
+            MsgText.Font = Enum.Font.GothamMedium
+            MsgText.Text = "["..tostring(Sender).."]: "..tostring(Text)
+            MsgText.TextColor3 = Compkiller.Colors.SwitchColor
+            MsgText.TextSize = 13.000
+            MsgText.TextXAlignment = Enum.TextXAlignment.Left
+            MsgText.TextWrapped = true
+
+            table.insert(Compkiller.Elements.SwitchColor,{
+                Element = MsgText,
+                Property = "TextColor3"
+            })
+
+            -- Auto resize height based on text length
+            local bounds = game:GetService("TextService"):GetTextSize(MsgText.Text, 13, Enum.Font.GothamMedium, Vector2.new(ChatLog.AbsoluteSize.X, math.huge))
+            MsgFrame.Size = UDim2.new(1, 0, 0, math.max(20, bounds.Y))
+
+            -- Update CanvasSize
+            ChatLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                ChatLog.CanvasSize = UDim2.new(0, 0, 0, ChatLayout.AbsoluteContentSize.Y)
+                ChatLog.CanvasPosition = Vector2.new(0, ChatLayout.AbsoluteContentSize.Y)
+            end)
+            ChatLog.CanvasSize = UDim2.new(0, 0, 0, ChatLayout.AbsoluteContentSize.Y)
+            ChatLog.CanvasPosition = Vector2.new(0, ChatLayout.AbsoluteContentSize.Y)
+        end
+        
+        SendButton.MouseButton1Click:Connect(function()
+            local text = MessageBox.Text
+            if text and text ~= "" then
+                -- For now it doesn't do anything, just clears the box
+                MessageBox.Text = ""
+            end
+        end)
+
+		return TabArgs;
+	end;
+
 	function WindowArgs:DrawTab(TabConfig : TabConfig , Internal)
 		TabConfig = Compkiller.__CONFIG(TabConfig,{
 			Name = "Tab",
