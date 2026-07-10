@@ -9335,7 +9335,7 @@ function Compkiller.new(Config : Window)
 			SectionClose.Image = Compkiller:CacheImage("rbxassetid://109535175596957")
 			SectionClose.ImageTransparency = 0.500
 
-			if WindowArgs.SelectedTab ~= TabArgs.Root then
+			if WindowArgs.SelectedTab ~= TabArgs.__Current.Root then
 				Section.BackgroundTransparency = 1
 				UIStroke.Transparency = 1
 				SectionText.TextTransparency = 1
@@ -9343,7 +9343,7 @@ function Compkiller.new(Config : Window)
 			end
 
 			local TabTween = TweenInfo.new(0.35,Enum.EasingStyle.Quint)
-			TabArgs.Remote.Event:Connect(function(bool)
+			TabArgs.__Current.Remote:Connect(function(bool)
 				if bool then
 					Compkiller:_Animation(Section,TabTween,{BackgroundTransparency = 0})
 					Compkiller:_Animation(UIStroke,TabTween,{Transparency = 0})
