@@ -7445,6 +7445,21 @@ function Compkiller.new(Config : Window)
 
 			InternalSignal:Connect(ToggleUI)
 
+			local TabTween = TweenInfo.new(0.35,Enum.EasingStyle.Quint)
+			TabOpenSignal:Connect(function(bool)
+				local isActive = (TabArgs.__Current and TabArgs.__Current.Root == Frame)
+				if bool then
+					Compkiller:_Animation(Highlight,TabTween,{BackgroundTransparency = isActive and 0 or 1})
+					Compkiller:_Animation(Frame,TabTween,{BackgroundTransparency = isActive and 0 or 1})
+					Compkiller:_Animation(UIStroke,TabTween,{Transparency = isActive and 0 or 1})
+					Compkiller:_Animation(TextLabel,TabTween,{TextTransparency = isActive and 0 or 0.5})
+				else
+					Compkiller:_Animation(Highlight,TabTween,{BackgroundTransparency = 1})
+					Compkiller:_Animation(Frame,TabTween,{BackgroundTransparency = 1})
+					Compkiller:_Animation(UIStroke,TabTween,{Transparency = 1})
+					Compkiller:_Animation(TextLabel,TabTween,{TextTransparency = 1})
+				end
+			end)
 
 			if not TabArgs.Tabs[1] then
 				TabArgs.__Current = Id;
@@ -7714,8 +7729,8 @@ function Compkiller.new(Config : Window)
 		BlockLine.Name = Compkiller:_RandomString()
 		BlockLine.Parent = Header
 		BlockLine.AnchorPoint = Vector2.new(0.5, 1)
-		BlockLine.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-		BlockLine.BackgroundTransparency = 0.500
+		BlockLine.Visible = false
+		BlockLine.BackgroundTransparency = 1.000
 		BlockLine.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		BlockLine.BorderSizePixel = 0
 		BlockLine.Position = UDim2.new(0.5, 0, 1, 0)
@@ -8204,6 +8219,44 @@ function Compkiller.new(Config : Window)
 				end;
 			end;
 		end);
+
+		local ConfigListOpen = true
+		local AddConfigOpen = true
+		
+		local function updateConfigLayout()
+			local AnimTween = TweenInfo.new(0.35,Enum.EasingStyle.Quint)
+			if ConfigListOpen and AddConfigOpen then
+				Compkiller:_Animation(ConfigList, AnimTween, {Size = UDim2.new(1, 0, 1, -105)})
+				Compkiller:_Animation(AddConfig, AnimTween, {Size = UDim2.new(1, 0, 0, 95)})
+				Compkiller:_Animation(SectionClose, AnimTween, {Rotation = 0})
+				Compkiller:_Animation(SectionClose_2, AnimTween, {Rotation = 0})
+			elseif ConfigListOpen and not AddConfigOpen then
+				Compkiller:_Animation(ConfigList, AnimTween, {Size = UDim2.new(1, 0, 1, -45)})
+				Compkiller:_Animation(AddConfig, AnimTween, {Size = UDim2.new(1, 0, 0, 35)})
+				Compkiller:_Animation(SectionClose, AnimTween, {Rotation = 0})
+				Compkiller:_Animation(SectionClose_2, AnimTween, {Rotation = -180})
+			elseif not ConfigListOpen and AddConfigOpen then
+				Compkiller:_Animation(ConfigList, AnimTween, {Size = UDim2.new(1, 0, 0, 35)})
+				Compkiller:_Animation(AddConfig, AnimTween, {Size = UDim2.new(1, 0, 1, -45)})
+				Compkiller:_Animation(SectionClose, AnimTween, {Rotation = -180})
+				Compkiller:_Animation(SectionClose_2, AnimTween, {Rotation = 0})
+			else
+				Compkiller:_Animation(ConfigList, AnimTween, {Size = UDim2.new(1, 0, 0, 35)})
+				Compkiller:_Animation(AddConfig, AnimTween, {Size = UDim2.new(1, 0, 0, 35)})
+				Compkiller:_Animation(SectionClose, AnimTween, {Rotation = -180})
+				Compkiller:_Animation(SectionClose_2, AnimTween, {Rotation = -180})
+			end
+		end
+
+		Compkiller:_Input(Header, function()
+			ConfigListOpen = not ConfigListOpen
+			updateConfigLayout()
+		end)
+
+		Compkiller:_Input(Header_2, function()
+			AddConfigOpen = not AddConfigOpen
+			updateConfigLayout()
+		end)
 
 		function TabArgs:_DrawConfig()
 			local ConfigButton = {};
