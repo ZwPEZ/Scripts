@@ -7158,7 +7158,11 @@ function Compkiller.new(Config : Window)
 		-- Functions --
 		Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
 			if Highlight.BackgroundTransparency <= 0.99 then
-				ContainerTab.Visible = true;
+				if not ContainerTab.Visible then
+					ContainerTab.Visible = true;
+					ContainerTab.Position = UDim2.new(0.5, 0, 0.5, 15)
+					Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
+				end
 			else
 				ContainerTab.Visible = false;
 			end;
@@ -7929,7 +7933,11 @@ function Compkiller.new(Config : Window)
 
 		Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
 			if Highlight.BackgroundTransparency <= 0.99 then
-				TabConfig.Visible = true;
+				if not TabConfig.Visible then
+					TabConfig.Visible = true;
+					TabConfig.Position = UDim2.new(0.5, 0, 0.5, 15)
+					Compkiller:_Animation(TabConfig,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
+				end
 			else
 				TabConfig.Visible = false;
 			end;
@@ -9018,7 +9026,11 @@ function Compkiller.new(Config : Window)
 
 			Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
 				if Highlight.BackgroundTransparency <= 0.99 then
-					TabContent.Visible = true;
+					if not TabContent.Visible then
+						TabContent.Visible = true;
+						TabContent.Position = UDim2.new(0.5, 0, 0.5, 15)
+						Compkiller:_Animation(TabContent,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
+					end
 				else
 					TabContent.Visible = false;
 				end;
