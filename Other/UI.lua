@@ -7670,6 +7670,7 @@ function Compkiller.new(Config : Window)
 
 		ConfigList.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ConfigList.BorderSizePixel = 0
+		ConfigList.ClipsDescendants = true
 		ConfigList.Size = UDim2.new(1, 0, 1, -105)
 		ConfigList.ZIndex = 9
 
@@ -7789,6 +7790,7 @@ function Compkiller.new(Config : Window)
 
 		AddConfig.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		AddConfig.BorderSizePixel = 0
+		AddConfig.ClipsDescendants = true
 		AddConfig.Size = UDim2.new(1, 0, 0, 95)
 		AddConfig.ZIndex = 9
 
