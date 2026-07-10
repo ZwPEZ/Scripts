@@ -1770,6 +1770,8 @@ function Compkiller.__SIGNAL(default)
 		return Bindable:GetAttribute("Value");
 	end;
 
+	Binds.Event = Bindable.Event; -- expose raw event for deferred-only connections
+
 	return Binds;
 end;
 
@@ -8740,11 +8742,6 @@ function Compkiller.new(Config : Window)
 			local Refresh = function()
 				local FullConfig = Configuration.Config:GetFullConfigs();
 
-				print("[DEBUG] Refresh called! Found", #FullConfig, "configs.")
-				for i,v in next, FullConfig do
-					print("[DEBUG] Config Name:", tostring(v.Name), "| Author:", tostring(v.Info and v.Info.Author))
-				end
-
 				for i,v in next, ScrollingFrame:GetChildren() do
 					if v:IsA('Frame') and v.Name ~= "Space" then
 						v:Destroy();
@@ -8761,13 +8758,13 @@ function Compkiller.new(Config : Window)
 
 					Button:SetInfo(v.Info.Author,v.Name);
 
-					table.insert(__signals,TabOpenSignal:Connect(function(v)
+					-- Use raw BindableEvent (deferred) so we don't immediately call Toggle(false)
+					-- which hides every block the moment it's created.
+					table.insert(__signals, TabOpenSignal.Event:Connect(function(v)
 						Button:Toggle(v);
 					end));
-
-					if WindowArgs.SelectedTab == TabButton then
-						Button:Toggle(true);
-					end;
+					-- Set the correct initial visibility state right now.
+					Button:Toggle(TabOpenSignal:GetValue());
 
 					Button.OnLoad = function()
 						WindowArgs.Notify.new({
@@ -8825,12 +8822,1169 @@ function Compkiller.new(Config : Window)
 			return Init;
 		end;
 
-		TabArgs:Init();
+		return TabArgs;
+	end;
+
+	function WindowArgs:DrawTab(TabConfig : TabConfig , Internal)
+		TabConfig = Compkiller.__CONFIG(TabConfig,{
+			Name = "Tab",
+
+			Icon = "eye",
+			Type = "Double"
+		});
+
+		local TabOpenSignal = Compkiller.__SIGNAL(false);
+		local TabArgs = {};
+		local Upvalue = {};
+		local BASE_PADDING = 10;
+
+		if Internal then
+
+			local TabContent = Instance.new("Frame")
+			local Left = Instance.new("ScrollingFrame")
+			local UIListLayout = Instance.new("UIListLayout")
+			local Right = Instance.new("ScrollingFrame")
+			local UIListLayout_2 = Instance.new("UIListLayout")
+
+			TabContent.Name = Compkiller:_RandomString()
+			TabContent.Parent = Internal.Parent;
+			TabContent.AnchorPoint = Vector2.new(0.5, 0.5)
+			TabContent.BackgroundTransparency = 1.000
+			TabContent.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			TabContent.BorderSizePixel = 0
+			TabContent.Position = UDim2.new(0.5, 0, 0.5, 0)
+			TabContent.Size = UDim2.new(1, -5,1, -5)
+			TabContent.ZIndex = 6
+
+			Left.Name = Compkiller:_RandomString()
+			Left.Parent = TabContent
+			Left.Active = true
+			Left.AnchorPoint = Vector2.new(0.5, 0.5)
+			Left.BackgroundTransparency = 1.000
+			Left.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Left.BorderSizePixel = 0
+			Left.ClipsDescendants = false
+			Left.Position = UDim2.new(0.25, -3, 0.5, 0)
+			Left.Size = UDim2.new(0.5, -3, 1, 0)
+			Left.ZIndex = 8
+			Left.BottomImage = ""
+			Left.ScrollBarThickness = 0
+			Left.TopImage = ""
+			--Left.AutomaticCanvasSize = Enum.AutomaticSize.Y;
+			Left.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+			UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+				Left.CanvasSize = UDim2.fromOffset(0,UIListLayout.AbsoluteContentSize.Y)
+			end)
+
+			UIListLayout.Parent = Left
+			UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+			UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			UIListLayout.VerticalFlex = Enum.UIFlexAlignment.None
+			UIListLayout.Padding = UDim.new(0, BASE_PADDING)
+
+			Right.Name = Compkiller:_RandomString()
+			Right.Parent = TabContent
+			Right.Active = true
+			Right.AnchorPoint = Vector2.new(0.5, 0.5)
+			Right.BackgroundTransparency = 1.000
+			Right.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Right.BorderSizePixel = 0
+			Right.ClipsDescendants = false
+			Right.Position = UDim2.new(0.75, 3, 0.5, 0)
+			Right.Size = UDim2.new(0.5, -3, 1, 0)
+			Right.ZIndex = 8
+			Right.BottomImage = ""
+			--Right.AutomaticCanvasSize = Enum.AutomaticSize.Y;
+			Right.CanvasSize = UDim2.new(0, 0, 0, 0)
+			Right.ScrollBarThickness = 0
+			Right.TopImage = ""
+
+			Upvalue.Left = Left;
+			Upvalue.Right = Right;
+			Upvalue.LeftLayout = UIListLayout;
+			Upvalue.RightLayout = UIListLayout_2;
+
+			UIListLayout_2:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+				Right.CanvasSize = UDim2.fromOffset(0,UIListLayout_2.AbsoluteContentSize.Y)
+			end)
+
+			UIListLayout_2.Parent = Right
+			UIListLayout_2.HorizontalAlignment = Enum.HorizontalAlignment.Center
+			UIListLayout_2.SortOrder = Enum.SortOrder.LayoutOrder
+			UIListLayout_2.Padding = UDim.new(0, BASE_PADDING)
+			UIListLayout_2.VerticalFlex = Enum.UIFlexAlignment.None
+
+			WindowArgs:AddUnbind(UIListLayout_2 , Right);
+			WindowArgs:AddUnbind(UIListLayout , Left);
+
+			if TabConfig.Type == "Single" then
+				Right.Visible = false;
+				Left.Position = UDim2.new(0.5, 0, 0.5, 0)
+				Left.Size = UDim2.new(1,0,1,0)
+			end;
+
+			local Tween = TweenInfo.new(0.35,Enum.EasingStyle.Quint);
+
+			Internal.Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
+				if Internal.Highlight.BackgroundTransparency <= 0.99 then
+					TabContent.Visible = true;
+				else
+					TabContent.Visible = false;
+				end;
+
+				if Compkiller.PerformanceMode then
+					if TabContent.Visible then
+						Compkiller:_SetNilP(TabContent , Internal.Parent);
+					else
+						Compkiller:_SetNilP(TabContent , nil);
+					end;
+				else
+					Compkiller:_SetNilP(TabContent , Internal.Parent);
+				end;
+			end);
+
+			Upvalue.Left = Left;
+			Upvalue.Right = Right;
+
+			if Compkiller:_IsMobile() then
+				Compkiller:_AddDragBlacklist(Left);
+				Compkiller:_AddDragBlacklist(Right);
+			end;
+
+			TabOpenSignal = Internal.Signal;
+
+			if not TabOpenSignal:GetValue() then
+				TabContent.Visible = false;
+			else
+				TabContent.Visible = true;
+			end;
+
+			if Compkiller.PerformanceMode then
+				if TabContent.Visible then
+					Compkiller:_SetNilP(TabContent , Internal.Parent);
+				else
+					Compkiller:_SetNilP(TabContent , nil);
+				end;
+			else
+				Compkiller:_SetNilP(TabContent , Internal.Parent);
+			end;
+		else
+			-- Button --
+			local TabButton = Instance.new("Frame")
+			local Icon = Instance.new("ImageLabel")
+			local TabNameLabel = Instance.new("TextLabel")
+			local Highlight = Instance.new("Frame")
+			local UICorner = Instance.new("UICorner")
+
+			TabButton.Name = Compkiller:_RandomString()
+			TabButton.Parent = TabButtonScrollingFrame
+			TabButton.BackgroundTransparency = 1.000
+			TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			TabButton.BorderSizePixel = 0
+			TabButton.ClipsDescendants = true
+			TabButton.Size = UDim2.new(1, -10, 0, 32)
+			TabButton.ZIndex = 3
+
+			Icon.Name = Compkiller:_RandomString()
+			Icon.Parent = TabButton
+			Icon.AnchorPoint = Vector2.new(0, 0.5)
+			Icon.BackgroundColor3 = Compkiller.Colors.Highlight
+			Icon.BackgroundTransparency = 1.000
+			Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Icon.BorderSizePixel = 0
+			Icon.Position = UDim2.new(0, 15, 0.5, 0)
+			Icon.Size = UDim2.new(0, 15, 0, 15)
+			Icon.ZIndex = 3
+			Icon.Image = Compkiller:_GetIcon(TabConfig.Icon);
+			Icon.ImageColor3 = Compkiller.Colors.Highlight
+
+			table.insert(Compkiller.Elements.Highlight,{
+				Element = Icon,
+				Property = "ImageColor3"
+			});
+
+			TabNameLabel.Name = Compkiller:_RandomString()
+			TabNameLabel.Parent = TabButton
+			TabNameLabel.AnchorPoint = Vector2.new(0, 0.5)
+			TabNameLabel.BackgroundTransparency = 1.000
+			TabNameLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			TabNameLabel.BorderSizePixel = 0
+			TabNameLabel.Position = UDim2.new(0, 43, 0.5, 0)
+			TabNameLabel.Size = UDim2.new(0, 200, 0, 25)
+			TabNameLabel.ZIndex = 3
+			TabNameLabel.Font = Enum.Font.GothamMedium
+			TabNameLabel.Text = TabConfig.Name;
+			TabNameLabel.TextColor3 = Compkiller.Colors.SwitchColor
+			TabNameLabel.TextSize = 15.000
+			TabNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+			table.insert(Compkiller.Elements.SwitchColor , {
+				Element = TabNameLabel,
+				Property = 'TextColor3'
+			});
+
+			Highlight.Name = Compkiller:_RandomString()
+			Highlight.Parent = TabButton
+			Highlight.AnchorPoint = Vector2.new(0.5, 0.5)
+			Highlight.BackgroundColor3 = Color3.fromRGB(161, 161, 161)
+			Highlight.BackgroundTransparency = 0.925
+			Highlight.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Highlight.BorderSizePixel = 0
+			Highlight.Position = UDim2.new(0.5, 0, 0.5, 0)
+			Highlight.Size = UDim2.new(1, -17, 1, 0)
+			Highlight.ZIndex = 2
+
+			UICorner.CornerRadius = UDim.new(0, 4)
+			UICorner.Parent = Highlight
+
+			local TabContent = Instance.new("Frame")
+			local Left = Instance.new("ScrollingFrame")
+			local UIListLayout = Instance.new("UIListLayout")
+			local Right = Instance.new("ScrollingFrame")
+			local UIListLayout_2 = Instance.new("UIListLayout")
+
+			TabContent.Name = Compkiller:_RandomString()
+			TabContent.Parent = TabMainFrame;
+			TabContent.AnchorPoint = Vector2.new(0.5, 0.5)
+			TabContent.BackgroundTransparency = 1.000
+			TabContent.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			TabContent.BorderSizePixel = 0
+			TabContent.Position = UDim2.new(0.5, 0, 0.5, 0)
+			TabContent.Size = UDim2.new(1, -15, 1, -15)
+			TabContent.ZIndex = 6
+
+			Left.Name = Compkiller:_RandomString()
+			Left.Parent = TabContent
+			Left.Active = true
+			Left.AnchorPoint = Vector2.new(0.5, 0.5)
+			Left.BackgroundTransparency = 1.000
+			Left.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Left.BorderSizePixel = 0
+			Left.ClipsDescendants = false
+			Left.Position = UDim2.new(0.25, -3, 0.5, 0)
+			Left.Size = UDim2.new(0.5, -3, 1, 0)
+			Left.ZIndex = 8
+			Left.BottomImage = ""
+			Left.ScrollBarThickness = 0
+			Left.TopImage = ""
+			--Left.AutomaticCanvasSize = Enum.AutomaticSize.Y;
+			Left.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+
+			UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+				Left.CanvasSize = UDim2.fromOffset(0,UIListLayout.AbsoluteContentSize.Y)
+			end);
+
+			UIListLayout.Parent = Left
+			UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+			UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			UIListLayout.VerticalFlex = Enum.UIFlexAlignment.None
+			UIListLayout.Padding = UDim.new(0, BASE_PADDING)
+
+			Right.Name = Compkiller:_RandomString()
+			Right.Parent = TabContent
+			Right.Active = true
+			Right.AnchorPoint = Vector2.new(0.5, 0.5)
+			Right.BackgroundTransparency = 1.000
+			Right.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Right.BorderSizePixel = 0
+			Right.ClipsDescendants = false
+			Right.Position = UDim2.new(0.75, 3, 0.5, 0)
+			Right.Size = UDim2.new(0.5, -3, 1, 0)
+			Right.ZIndex = 8
+			Right.BottomImage = ""
+			Right.ScrollBarThickness = 0
+			Right.TopImage = ""
+			--Right.AutomaticCanvasSize = Enum.AutomaticSize.Y;
+			Right.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+			Upvalue.Left = Left;
+			Upvalue.Right = Right;
+			Upvalue.LeftLayout = UIListLayout;
+			Upvalue.RightLayout = UIListLayout_2;
+
+			UIListLayout_2:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+				Right.CanvasSize = UDim2.fromOffset(0,UIListLayout_2.AbsoluteContentSize.Y)
+			end)
+
+			UIListLayout_2.Parent = Right
+			UIListLayout_2.HorizontalAlignment = Enum.HorizontalAlignment.Center
+			UIListLayout_2.SortOrder = Enum.SortOrder.LayoutOrder
+			UIListLayout_2.Padding = UDim.new(0, BASE_PADDING)
+			UIListLayout_2.VerticalFlex = Enum.UIFlexAlignment.None
+
+			WindowArgs:AddUnbind(UIListLayout_2 , Right);
+			WindowArgs:AddUnbind(UIListLayout , Left);
+
+			if Compkiller:_IsMobile() then
+				Compkiller:_AddDragBlacklist(Left);
+				Compkiller:_AddDragBlacklist(Right);
+			end;
+
+			if TabConfig.Type == "Single" then
+				Right.Visible = false;
+				Left.Position = UDim2.new(0.5, 0, 0.5, 0)
+				Left.Size = UDim2.new(1, -1, 1, -1)
+			end;
+
+			local Tween = TweenInfo.new(0.35,Enum.EasingStyle.Quint);
+
+			Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
+				if Highlight.BackgroundTransparency <= 0.99 then
+					TabContent.Visible = true;
+				else
+					TabContent.Visible = false;
+				end;
+
+				if Compkiller.PerformanceMode then
+					if TabContent.Visible then
+						Compkiller:_SetNilP(TabContent , TabMainFrame);
+					else
+						Compkiller:_SetNilP(TabContent , nil);
+					end;
+				else
+					Compkiller:_SetNilP(TabContent , TabMainFrame);
+				end;
+			end)
+
+			local TabOpen = function(bool)
+				if bool then
+
+					WindowArgs.SelectedTab = TabButton;
+
+					Compkiller:_Animation(Icon,Tween,{
+						ImageTransparency = 0,
+					});
+
+					Compkiller:_Animation(TabNameLabel,Tween,{
+						TextTransparency = 0
+					});
+
+					Compkiller:_Animation(Highlight,Tween,{
+						BackgroundTransparency = 0.925
+					});
+				else
+					Compkiller:_Animation(Icon,Tween,{
+						ImageTransparency = 0.5
+					});
+
+					Compkiller:_Animation(TabNameLabel,Tween,{
+						TextTransparency = 0.5
+					});
+
+					Compkiller:_Animation(Highlight,Tween,{
+						BackgroundTransparency = 1
+					});
+				end;
+			end;
+
+			if not WindowArgs.Tabs[1] then
+				TabOpenSignal:Fire(true);
+				TabOpen(true);
+			else
+				TabOpen(false);
+			end;
+
+			table.insert(WindowArgs.Tabs , {
+				Root = TabButton,
+				Remote = TabOpenSignal
+			});
+
+			Compkiller:_Hover(TabButton,function()
+				if WindowArgs.SelectedTab ~= TabButton then
+					Compkiller:_Animation(Icon,Tween,{
+						ImageTransparency = 0.1
+					});
+
+					Compkiller:_Animation(TabNameLabel,Tween,{
+						TextTransparency = 0.1
+					});
+				end;
+			end , function()
+				if WindowArgs.SelectedTab ~= TabButton then
+					Compkiller:_Animation(Icon,Tween,{
+						ImageTransparency = 0.5
+					});
+
+					Compkiller:_Animation(TabNameLabel,Tween,{
+						TextTransparency = 0.5
+					});
+				end;
+			end)
+
+			TabOpenSignal:Connect(TabOpen);
+
+			TabHover:Connect(function(bool)
+				if bool then
+					Compkiller:_Animation(TabButton,Tween,{
+						Size = UDim2.new(1, -10, 0, 32)
+					});
+
+					Compkiller:_Animation(Icon,Tween,{
+						Size = UDim2.new(0, 16, 0, 16),
+					});
+
+					Compkiller:_Animation(TabNameLabel,Tween,{
+						Size = UDim2.new(0, 200, 0, 25),
+						Position = UDim2.new(0, 43, 0.5, 0)
+					});
+
+					Compkiller:_Animation(UICorner,Tween,{
+						CornerRadius = UDim.new(0, 4)
+					});
+
+					Compkiller:_Animation(Highlight,Tween,{
+						Size = UDim2.new(1, -17, 1, 0),
+						Position = UDim2.new(0.5, 0, 0.5, 0)
+					});
+				else
+					Compkiller:_Animation(UICorner,Tween,{
+						CornerRadius = UDim.new(0, 10)
+					});
+
+					Compkiller:_Animation(TabButton,Tween,{
+						Size = UDim2.new(1, -10, 0, 32)
+					});
+
+					Compkiller:_Animation(Icon,Tween,{
+						Size = UDim2.new(0, 16, 0, 16),
+					});
+
+					Compkiller:_Animation(TabNameLabel,Tween,{
+						Size = UDim2.new(0, 200, 0, 25),
+						Position = UDim2.new(0, 80, 0.5, 0)
+					});
+
+					Compkiller:_Animation(Highlight,Tween,{
+						Size = UDim2.new(1, -10,1, 5),
+						Position = UDim2.new(0.5, 0, 0.5, 0)
+					});
+				end;
+			end);
+
+			Compkiller:_Input(TabButton,function()
+				for i,v in next, WindowArgs.Tabs do
+					if v.Root == TabButton then
+						v.Remote:Fire(true);
+					else
+						v.Remote:Fire(false);
+					end;
+				end;
+			end);
+		end;
+
+		function TabArgs:_UpdateScrolling(Frame: ScrollingFrame , ListLayout: UIListLayout)
+			local frame;
+
+			local last = 0;
+			local scale = 0;
+
+			local Offset = ListLayout.Padding.Offset;
+			local Childrens = Frame:GetChildren();
+
+			for i,v in next ,Childrens do task.wait();
+				if v:IsA('Frame') then
+					if v.LayoutOrder > last then
+						scale += v.AbsoluteSize.Y + Offset;
+
+						last = v.LayoutOrder;
+						frame = v;
+					end;
+				end;
+			end;
+
+			task.wait();
+
+			if frame then
+				local originalScale = frame:GetAttribute('OrigninalScale');
+
+				if originalScale then
+					task.wait();
+
+					local Maximum = Frame.AbsoluteSize.Y;
+
+					local remainingHeight = Maximum - ((scale) - (frame.AbsoluteSize.Y));
+
+					if originalScale >= Frame.AbsoluteSize.Y then
+						Frame:SetAttribute('LayoutStacks',originalScale + 5);
+					else
+						Frame:SetAttribute('LayoutStacks',((remainingHeight) + 5));
+					end
+
+					task.wait();
+
+					local caller = WindowArgs.THREADS[frame];
+
+					if caller then
+						caller(true);
+					end;
+				end;
+			end;
+
+			task.wait();
+		end;
+
+		TabArgs.SectionInfo = {};
+
+		TabArgs.SectionClose = {
+			[Upvalue.Left] = {},
+			[Upvalue.Right] = {},
+		};
+
+		TabArgs.LeftThread = coroutine.wrap(function()
+			task.wait();
+
+			while true do task.wait(0.01)
+				TabArgs:_UpdateScrolling(Upvalue.Left , Upvalue.LeftLayout);
+			end;
+		end);
+
+		TabArgs.RightThread = coroutine.wrap(function()
+			task.wait(0.1);
+
+			while true do task.wait(0.01)
+				TabArgs:_UpdateScrolling(Upvalue.Right , Upvalue.RightLayout);
+			end;
+		end);
+
+		--TabArgs.LeftThread();
+		--TabArgs.RightThread();
+
+		function TabArgs:DrawSection(config: Section)
+			config = Compkiller.__CONFIG(config,{
+				Name = "Section",
+				Position = "left"
+			});
+
+			local Parent = (TabConfig.Type == "Double" and ((string.lower(config.Position) == "left" and Upvalue.Left) or Upvalue.Right)) or Upvalue.Left;
+			local ParentLayout = (TabConfig.Type == "Double" and ((string.lower(config.Position) == "left" and Upvalue.LeftLayout) or Upvalue.RightLayout)) or Upvalue.LeftLayout;
+
+			local IsOpen = true;
+
+			local Section = Instance.new("Frame")
+			local UICorner = Instance.new("UICorner")
+			local UIStroke = Instance.new("UIStroke")
+			local UIListLayout = Instance.new("UIListLayout")
+			local Header = Instance.new("Frame")
+			local SectionText = Instance.new("TextLabel")
+			local SectionClose = Instance.new("ImageLabel")
+
+			Section.Name = Compkiller:_RandomString()
+			Section.Parent = Parent;
+
+			if TabConfig.Type == "Single" then
+				Section.Parent = Upvalue.Left;
+			end;
+
+			Section.BackgroundColor3 = Compkiller.Colors.BlockColor
+
+			table.insert(Compkiller.Elements.BlockColor , {
+				Element = Section,
+				Property = "BackgroundColor3"
+			});
+
+			if Compkiller:_IsMobile() then
+				Compkiller:_AddDragBlacklist(Section);
+			end;
+
+			Section.LayoutOrder = #Parent:GetChildren() + 3;
+			Section.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Section.BorderSizePixel = 0
+			Section.Size = UDim2.new(1, 0, 0, 0)
+			Section.ZIndex = 9
+			Section.ClipsDescendants = true;
+
+			UICorner.CornerRadius = UDim.new(0, 6)
+			UICorner.Parent = Section
+
+			UIStroke.Color = Compkiller.Colors.StrokeColor
+			UIStroke.Parent = Section
+
+			table.insert(Compkiller.Elements.StrokeColor,{
+				Element = UIStroke,
+				Property = "Color"
+			});
+
+			UIListLayout.Parent = Section
+			UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+			UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			UIListLayout.Padding = UDim.new(0, 5)
+
+			Header.Name = Compkiller:_RandomString()
+			Header.Parent = Section
+			Header.BackgroundTransparency = 1.000
+			Header.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Header.BorderSizePixel = 0
+			Header.LayoutOrder = -100
+			Header.Size = UDim2.new(1, 0, 0, 35)
+			Header.ZIndex = 9
+
+			SectionText.Name = Compkiller:_RandomString()
+			SectionText.Parent = Header
+			SectionText.AnchorPoint = Vector2.new(0, 0.5)
+			SectionText.BackgroundTransparency = 1.000
+			SectionText.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			SectionText.BorderSizePixel = 0
+			SectionText.Position = UDim2.new(0, 12, 0.5, 0)
+			SectionText.Size = UDim2.new(0, 200, 0, 25)
+			SectionText.ZIndex = 10
+			SectionText.Font = Enum.Font.GothamMedium
+			SectionText.Text = config.Name;
+			SectionText.TextColor3 = Compkiller.Colors.SwitchColor
+			SectionText.TextSize = 14.000
+			SectionText.TextTransparency = 0.500
+			SectionText.TextXAlignment = Enum.TextXAlignment.Left
+
+			table.insert(Compkiller.Elements.SwitchColor , {
+				Element = SectionText,
+				Property = 'TextColor3'
+			});
+
+			SectionClose.Name = Compkiller:_RandomString()
+			SectionClose.Parent = Header
+			SectionClose.AnchorPoint = Vector2.new(1, 0.5)
+			SectionClose.BackgroundTransparency = 1.000
+			SectionClose.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			SectionClose.BorderSizePixel = 0
+			SectionClose.Position = UDim2.new(1, -12, 0.5, 0)
+			SectionClose.Size = UDim2.new(0, 17, 0, 17)
+			SectionClose.ZIndex = 10
+			SectionClose.Image = Compkiller:CacheImage("rbxassetid://109535175596957")
+			SectionClose.ImageTransparency = 0.500
+
+			if not SectionText.Text:byte() then
+				Header.Visible = false;
+			else
+				Header.Visible = true;
+			end;
+
+			TabArgs.SectionInfo[Section] = {
+				UIListLayout = UIListLayout,
+			};
+
+			local refresh = function(Upvalue)
+				if not SectionText.Text:byte() then
+					Header.Visible = false;
+				else
+					Header.Visible = true;
+				end;
+
+				Section:SetAttribute('OrigninalScale',UIListLayout.AbsoluteContentSize.Y);
+
+				if IsOpen then
+					local FullScale = Section.AbsolutePosition.Y + UIListLayout.AbsoluteContentSize.Y;
+					local RefPos = Parent.AbsolutePosition.Y + Parent.AbsoluteSize.Y;
+
+					if (Section:GetAttribute('Height') and not Compkiller:_IsMobile() and FullScale <= RefPos) then
+						Compkiller:_Animation(Section,TweenInfo.new(0.4,Enum.EasingStyle.Quint),{
+							Size = UDim2.new(1, 0, 0, math.abs(Section:GetAttribute('Height')) + 5)
+						});
+					else
+						Compkiller:_Animation(Section,TweenInfo.new(0.4,Enum.EasingStyle.Quint),{
+							Size = UDim2.new(1, 0, 0, math.abs(UIListLayout.AbsoluteContentSize.Y) - 1)
+						});
+
+						if Section:GetAttribute('Lasth') and UIListLayout.AbsoluteContentSize.Y > Section:GetAttribute('Lasth') then
+							Section:SetAttribute('Lasth',math.abs(UIListLayout.AbsoluteContentSize.Y) - 1);
+						end;
+					end;
+
+					TabArgs.SectionClose[Parent][Section] = nil;
+				else
+					TabArgs.SectionClose[Parent][Section] = Section;
+
+					Compkiller:_Animation(Section,TweenInfo.new(0.4,Enum.EasingStyle.Quint),{
+						Size = UDim2.new(1, 0, 0, 35)
+					});
+				end;
+			end;
+
+			WindowArgs.THREADS[Section] = refresh;
+
+			local refreshScale = function()
+				local Childrens = Parent:GetChildren();
+				local Latest = 0;
+				local frameFound = 0;
+				local allscale = 0;
+
+				for i,v: Frame in next , Childrens do task.wait();
+					if v:IsA('Frame') then
+						if v ~= Section then
+							frameFound += 1;
+							allscale += v:GetAttribute('HEIGHTSCALE') or v.AbsoluteSize.Y;
+
+							if v.LayoutOrder < Section.LayoutOrder then
+								if WindowArgs.THREADS[v] then
+									v:SetAttribute('Height',nil);
+									WindowArgs.THREADS[v]();
+								end;
+
+								Latest += 1;
+							end;
+						end;
+					end;
+				end;
+
+				if frameFound == 0 then
+					Latest = math.huge;
+				end;
+
+				if Latest >= frameFound then
+					local lscale = 25;
+
+					if allscale >= (Parent.AbsoluteSize.Y - lscale) or UIListLayout.AbsoluteContentSize.Y >= (Parent.AbsoluteSize.Y - lscale) then
+						Section:SetAttribute('Height',nil);
+					else
+						local parentScale = 0;
+
+						for i,v in next , Parent:GetChildren() do
+							if v:IsA('Frame') then
+								parentScale += v:GetAttribute('HEIGHTSCALE') + ParentLayout.Padding.Offset;
+							end;
+						end;
+
+						local remainingHeight = UIListLayout.AbsoluteContentSize.Y + (Parent.AbsoluteSize.Y - (parentScale));
+
+						if Section:GetAttribute('Lasth') then
+							remainingHeight = math.max(remainingHeight , Section:GetAttribute('Lasth'));
+						end;
+
+						Section:SetAttribute('Height',remainingHeight);
+						Section:SetAttribute('Lasth',remainingHeight);
+					end;
+				else
+					Section:SetAttribute('Height',nil);
+				end;
+
+				refresh();
+			end;
+
+			Section.ChildAdded:Connect(function()
+				task.wait()
+				refreshScale();
+			end)
+
+			Section:SetAttribute('HEIGHTSCALE',UIListLayout.AbsoluteContentSize.Y);
+
+			UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+				Section:SetAttribute('HEIGHTSCALE',math.max(UIListLayout.AbsoluteContentSize.Y , Section:GetAttribute('HEIGHTSCALE')));
+
+				refresh()
+			end);
+
+			TabOpenSignal:Connect(function(bool)
+				if bool then
+					Compkiller:_Animation(Section,TweenInfo.new(0.21),{
+						BackgroundTransparency = 0
+					})
+
+					Compkiller:_Animation(SectionText,TweenInfo.new(0.21),{
+						TextTransparency = 0.500
+					})
+
+					Compkiller:_Animation(SectionClose,TweenInfo.new(0.21),{
+						ImageTransparency = 0.500
+					})
+				else
+					Compkiller:_Animation(Section,TweenInfo.new(0.21),{
+						BackgroundTransparency = 1
+					})
+
+					Compkiller:_Animation(SectionText,TweenInfo.new(0.21),{
+						TextTransparency = 1
+					})
+
+					Compkiller:_Animation(SectionClose,TweenInfo.new(0.21),{
+						ImageTransparency = 1
+					})
+				end;
+			end);
+
+			Compkiller:_Input(Header,function()
+				IsOpen = not IsOpen;
+
+				if IsOpen then
+					Compkiller:_Animation(SectionClose,TweenInfo.new(0.35),{
+						Rotation = 0
+					});
+				else
+					Compkiller:_Animation(SectionClose,TweenInfo.new(0.35),{
+						Rotation = -180
+					});
+				end;
+
+				refresh();
+				refreshScale();
+			end);
+
+			task.delay(2.5,function()
+				refresh();
+				refreshScale();
+			end);
+
+			Header.MouseEnter:Connect(function()
+				Compkiller:_Animation(SectionText,TweenInfo.new(0.2),{
+					TextTransparency = 0.25
+				})
+			end)	
+
+			Header.MouseLeave:Connect(function()
+				Compkiller:_Animation(SectionText,TweenInfo.new(0.2),{
+					TextTransparency = 0.500
+				})
+			end)
+
+			return Compkiller:_LoadElement(Section , true , TabOpenSignal)
+		end;
 
 		return TabArgs;
 	end;
 
-		function WindowArgs:DrawSocialUI(Configuration : TabSocialManager , Internal)
+	do
+		local CloseWindow = Instance.new("Frame")
+		local UICorner = Instance.new("UICorner")
+		local ImageLabel = Instance.new("ImageLabel")
+
+		CloseWindow.Name = Compkiller:_RandomString()
+		CloseWindow.Parent = CompKiller
+		CloseWindow.AnchorPoint = Vector2.new(1, 0)
+		CloseWindow.BackgroundColor3 = Compkiller.Colors.BGDBColor
+
+		table.insert(Compkiller.Elements.BGDBColor,{
+			Element = CloseWindow,
+			Property = 'BackgroundColor3'
+		});
+
+		CloseWindow.BackgroundTransparency = 1
+		CloseWindow.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		CloseWindow.BorderSizePixel = 0
+		CloseWindow.Position = UDim2.new(1, -10, 0, 10)
+		CloseWindow.Size = UDim2.new(0, 0, 0, 23)
+		CloseWindow.ZIndex = 150
+		CloseWindow.ClipsDescendants = true;
+
+		UICorner.CornerRadius = UDim.new(0, 3)
+		UICorner.Parent = CloseWindow
+
+		ImageLabel.Parent = CloseWindow
+		ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+		ImageLabel.BackgroundTransparency = 1.000
+		ImageLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		ImageLabel.BorderSizePixel = 0
+		ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+		ImageLabel.Size = UDim2.new(0.800000012, 0, 0.800000012, 0)
+		ImageLabel.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		ImageLabel.ZIndex = 151
+		ImageLabel.Image = Config.Logo
+		ImageLabel.ImageTransparency = 1
+		ImageLabel.ClipsDescendants = false;
+
+		local ToggleCloseUI = function(v)
+			ImageLabel.Image = Config.Logo;
+
+			if v then
+				ImageLabel.ClipsDescendants = true;
+
+				Compkiller:_Animation(CloseWindow,TweenInfo.new(0.2),{
+					Size = UDim2.new(0, 45, 0, 23),
+					BackgroundTransparency = 0.025
+				})
+
+				Compkiller:_Animation(ImageLabel,TweenInfo.new(0.2),{
+					ImageTransparency = (ImageLabel:GetAttribute('Hover') and 0.1) or 0.35
+				})
+			else
+				ImageLabel.ClipsDescendants = false;
+
+				Compkiller:_Animation(CloseWindow,TweenInfo.new(0.2),{
+					Size = UDim2.new(0, 0, 0, 23),
+					BackgroundTransparency = 1
+				})
+
+				Compkiller:_Animation(ImageLabel,TweenInfo.new(0.2),{
+					ImageTransparency = 1
+				})
+			end;
+		end;
+
+		function WindowArgs:Watermark()
+			local Signal = Compkiller.__SIGNAL(true);
+
+			local Watermark = Instance.new("Frame")
+			local UICorner = Instance.new("UICorner")
+			local Logo = Instance.new("Frame")
+			local UICorner_2 = Instance.new("UICorner")
+			local Frame = Instance.new("Frame")
+			local CompLogo = Instance.new("ImageLabel")
+			local WaternarkList = Instance.new("Frame")
+			local UIListLayout = Instance.new("UIListLayout")
+
+			Watermark.Name = Compkiller:_RandomString()
+			Watermark.Parent = CompKiller
+			Watermark.AnchorPoint = Vector2.new(1, 0)
+			Watermark.BackgroundColor3 = Compkiller.Colors.BGDBColor
+
+			Compkiller:Drag(Watermark , Watermark, 0.1);
+
+			table.insert(Compkiller.Elements.BGDBColor,{
+				Element = Watermark,
+				Property = 'BackgroundColor3'
+			});
+
+			Watermark.BackgroundTransparency = 0.025
+			Watermark.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Watermark.BorderSizePixel = 0
+			Watermark.Position = UDim2.new(1, -10, 0, 10)
+			Watermark.Size = UDim2.new(0, 45, 0, 23)
+			Watermark.ZIndex = 150
+
+			UICorner.CornerRadius = UDim.new(0, 3)
+			UICorner.Parent = Watermark
+
+			Logo.Name = Compkiller:_RandomString()
+			Logo.Parent = Watermark
+			Logo.AnchorPoint = Vector2.new(1, 0.5)
+			Logo.BackgroundColor3 = Compkiller.Colors.BGDBColor
+
+			table.insert(Compkiller.Elements.BGDBColor,{
+				Element = Logo,
+				Property = 'BackgroundColor3'
+			});
+
+			Logo.BackgroundTransparency = 0.300
+			Logo.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Logo.BorderSizePixel = 0
+			Logo.Position = UDim2.new(0, 5, 0.5, 0)
+			Logo.Size = UDim2.new(1, 10, 1, 0)
+			Logo.SizeConstraint = Enum.SizeConstraint.RelativeYY
+			Logo.ZIndex = 149
+
+			UICorner_2.CornerRadius = UDim.new(0, 3)
+			UICorner_2.Parent = Logo
+
+			Frame.Parent = Logo
+			Frame.AnchorPoint = Vector2.new(0, 0.5)
+			Frame.BackgroundColor3 = Compkiller.Colors.Highlight
+			Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Frame.BorderSizePixel = 0
+			Frame.Position = UDim2.new(1, -5, 0.5, 0)
+			Frame.Size = UDim2.new(0, 2, 1, 0)
+			Frame.ZIndex = 151
+
+			table.insert(Compkiller.Elements.Highlight,{
+				Element = Frame,
+				Property = "BackgroundColor3"
+			});
+
+			CompLogo.Name = Compkiller:_RandomString()
+			CompLogo.Parent = Logo
+			CompLogo.AnchorPoint = Vector2.new(0.5, 0.5)
+			CompLogo.BackgroundTransparency = 1.000
+			CompLogo.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			CompLogo.BorderSizePixel = 0
+			CompLogo.Position = UDim2.new(0.5, -2, 0.5, 0)
+			CompLogo.Size = UDim2.new(0.800000012, 0, 0.800000012, 0)
+			CompLogo.SizeConstraint = Enum.SizeConstraint.RelativeYY
+			CompLogo.ZIndex = 159
+			CompLogo.Image = Config.Logo
+			
+			if Compkiller.CustomHighlightMode then
+				CompLogo.ImageColor3 = Compkiller.Colors.Highlight;
+
+				table.insert(Compkiller.Elements.Highlight , {
+					Element = CompLogo,
+					Property = 'ImageColor3'
+				});
+			end;
+
+			WaternarkList.Name = Compkiller:_RandomString()
+			WaternarkList.Parent = Watermark
+			WaternarkList.AnchorPoint = Vector2.new(0.5, 0)
+			WaternarkList.BackgroundTransparency = 1.000
+			WaternarkList.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			WaternarkList.BorderSizePixel = 0
+			WaternarkList.Position = UDim2.new(0.5, 0, 0, 0)
+			WaternarkList.Size = UDim2.new(1, -10, 1, 0)
+			WaternarkList.ZIndex = 155
+			WaternarkList.ClipsDescendants = true
+
+			UIListLayout.Parent = WaternarkList
+			UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+			UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+			UIListLayout.Padding = UDim.new(0, 3)
+
+			local BackFrame = Instance.new("Frame")
+
+			BackFrame.Name = Compkiller:_RandomString()
+			BackFrame.Parent = Watermark
+			BackFrame.AnchorPoint = Vector2.new(1, 0.5)
+			BackFrame.BackgroundTransparency = 1.000
+			BackFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			BackFrame.BorderSizePixel = 0
+			BackFrame.Position = UDim2.new(1, 0, 0.5, 0)
+			BackFrame.Size = UDim2.new(1, 30, 1, 0)
+
+			Compkiller:_Blur(BackFrame,Signal);
+
+			UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+				Compkiller:_Animation(Watermark,TweenInfo.new(0.4),{
+					Size = UDim2.new(0, UIListLayout.AbsoluteContentSize.X + 8, 0, 23)
+				});
+			end)
+
+			local Args = {};
+
+			function Args:AddText(Watermark : Watermark)
+				Watermark = Compkiller.__CONFIG(Watermark, {
+					Text = "Watermark",
+					Icon = "info"
+				});
+
+				local Icon = Instance.new("ImageLabel")
+				local TextLabel = Instance.new("TextLabel")
+
+				Icon.Name = Compkiller:_RandomString()
+				Icon.Parent = WaternarkList
+				Icon.BackgroundTransparency = 1.000
+				Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+				Icon.BorderSizePixel = 0
+				Icon.Size = UDim2.fromOffset(15,15)
+				Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+				Icon.ZIndex = 156
+				Icon.Image = Compkiller:_GetIcon(Watermark.Icon);
+
+				TextLabel.Parent = WaternarkList
+				TextLabel.BackgroundTransparency = 1.000
+				TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+				TextLabel.BorderSizePixel = 0
+				TextLabel.Size = UDim2.new(0, 50, 0.699999988, 0)
+				TextLabel.ZIndex = 156
+				TextLabel.Font = Enum.Font.GothamMedium
+				TextLabel.Text = Watermark.Text
+				TextLabel.TextColor3 = Compkiller.Colors.SwitchColor
+				TextLabel.TextSize = 10.000
+				TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+				table.insert(Compkiller.Elements.SwitchColor , {
+					Element = TextLabel,
+					Property = 'TextColor3'
+				});
+
+				local Update = function()
+					local scale = TextService:GetTextSize(TextLabel.Text,TextLabel.TextSize,TextLabel.Font,Vector2.new(math.huge,math.huge));
+
+					TextLabel.Size = UDim2.new(0, scale.X + 2, 0.7, 0)
+				end;
+
+				Update()
+
+				local Arg = {};
+
+				function Arg:SetText(text)
+					TextLabel.Text = text;
+					Update();
+				end;
+
+				function Arg:Visible(v)
+					Icon.Visible = v;
+					TextLabel.Visible = v;
+
+					if Compkiller.PerformanceMode then
+						if v then
+							Compkiller:_SetNilP(Icon , WaternarkList);
+							Compkiller:_SetNilP(TextLabel , WaternarkList);
+						else
+							Compkiller:_SetNilP(Icon , nil);
+							Compkiller:_SetNilP(TextLabel , nil);
+						end;
+					else
+						Compkiller:_SetNilP(Icon , WaternarkList);
+						Compkiller:_SetNilP(TextLabel , WaternarkList);
+					end;
+				end;
+
+				return Arg;
+			end;
+
+			return Args;
+		end;
+
+		function WindowArgs:Toggle(Value: boolean)
+			if WindowArgs.PerformanceMode then
+				MainFrame.Visible = Value;
+			end;
+
+			WindowOpen:Fire(Value);
+
+			if Value then
+				for i,v in next , WindowArgs.Tabs do
+					if v.Root == WindowArgs.SelectedTab then
+						v.Remote:Fire(true);
+					end;
+				end;
+			else
+				for i,v in next , WindowArgs.Tabs do
+					v.Remote:Fire(false);
+				end;
+			end;
+		end;
+
+		function WindowArgs:_ToggleUI()
+			WindowArgs.IsOpen = not WindowArgs.IsOpen;
+
+			WindowArgs:Toggle(WindowArgs.IsOpen)
+		end;
+
+		local Button = Compkiller:_Input(CloseWindow,function()
+			WindowArgs:_ToggleUI()
+		end)
+
+		if not Compkiller:_IsMobile() then
+
+			Compkiller:_Hover(Button,function()
+				ImageLabel:SetAttribute("Hover",true);
+			end , function()
+				ImageLabel:SetAttribute("Hover",false);
+			end);
+		end;
+
+		table.insert(WindowArgs.THREADS,task.spawn(function()
+			while true do task.wait(0.15)
+				if Compkiller:_IsMobile() then
+					ToggleCloseUI(true);
+
+					if WindowArgs.IsOpen then
+						Compkiller:_Animation(ImageLabel,TweenInfo.new(0.2),{
+							ImageTransparency = 0.35
+						});
+
+						ImageLabel:GetAttribute("Hover",false);
+					else
+						ImageLabel:GetAttribute("Hover",true);
+
+						Compkiller:_Animation(ImageLabel,TweenInfo.new(0.2),{
+							ImageTransparency = 0.1
+						});
+					end;
+				else
+					if not WindowArgs.IsOpen then
+						ToggleCloseUI(true);
+					else
+						ToggleCloseUI(false);
+					end
+				end;
+			end
+		end));
+
+		UserInputService.InputBegan:Connect(function(Input,Typing)
+			if not Typing and (Input.KeyCode == Config.Keybind or Input.KeyCode.Name == Config.Keybind) then
+				WindowArgs:_ToggleUI()
+			end;
+		end);
+	end;
+	function WindowArgs:DrawSocialUI(Configuration : TabSocialManager , Internal)
 		Configuration = Compkiller.__CONFIG(Configuration,{
 			Name = "Social",
 			Icon = "message-circle",
