@@ -7113,7 +7113,8 @@ function Compkiller.new(Config : Window)
 
 		-- Creating Container --
 
-		local ContainerTab = Instance.new("Frame")
+		local ContainerTab = Instance.new("CanvasGroup")
+		ContainerTab.GroupTransparency = 1
 		local MainFrame = Instance.new("Frame")
 		local Top = Instance.new("Frame")
 		local UIListLayout = Instance.new("UIListLayout")
@@ -7155,29 +7156,6 @@ function Compkiller.new(Config : Window)
 		UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 		UIListLayout.Padding = UDim.new(0, 10)
 
-		-- Functions --
-		Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
-			if Highlight.BackgroundTransparency <= 0.99 then
-				if not ContainerTab.Visible then
-					ContainerTab.Visible = true;
-					ContainerTab.Position = UDim2.new(0.5, 0, 0.5, 15)
-					Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
-				end
-			else
-				ContainerTab.Visible = false;
-			end;
-
-			if Compkiller.PerformanceMode then
-				if ContainerTab.Visible then
-					Compkiller:_SetNilP(ContainerTab , TabMainFrame);
-				else
-					Compkiller:_SetNilP(ContainerTab , nil);
-				end;
-			else
-				Compkiller:_SetNilP(ContainerTab , TabMainFrame);
-			end;
-		end);
-
 		local TabOpen = function(bool)
 			if bool then
 				WindowArgs.SelectedTab = TabButton;
@@ -7199,6 +7177,13 @@ function Compkiller.new(Config : Window)
 						v.Remote:Fire(true);
 					end;
 				end;
+
+				if not ContainerTab.Visible then
+					ContainerTab.Visible = true;
+					ContainerTab.Position = UDim2.new(0.5, 0, 0.5, 15)
+				end
+				Compkiller:_SetNilP(ContainerTab , TabMainFrame);
+				Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0), GroupTransparency = 0})
 			else
 				Compkiller:_Animation(Icon,Tween,{
 					ImageTransparency = 0.5
@@ -7215,6 +7200,16 @@ function Compkiller.new(Config : Window)
 				for i,v in next , TabArgs.Tabs do
 					v.Remote:Fire(false);
 				end;
+
+				Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15), GroupTransparency = 1})
+				task.delay(0.35, function()
+					if ContainerTab.GroupTransparency >= 0.99 then
+						ContainerTab.Visible = false;
+						if Compkiller.PerformanceMode then
+							Compkiller:_SetNilP(ContainerTab , nil);
+						end
+					end
+				end)
 			end;
 		end;
 
@@ -7611,7 +7606,8 @@ function Compkiller.new(Config : Window)
 		UICorner.CornerRadius = UDim.new(0, 4)
 		UICorner.Parent = Highlight
 
-		local TabConfig = Instance.new("Frame")
+		local TabConfig = Instance.new("CanvasGroup")
+		TabConfig.GroupTransparency = 1
 		local ConfigList = Instance.new("Frame")
 		local UICorner = Instance.new("UICorner")
 		local UIStroke = Instance.new("UIStroke")
@@ -7931,29 +7927,6 @@ function Compkiller.new(Config : Window)
 
 		local Tween = TweenInfo.new(0.35,Enum.EasingStyle.Quint);
 
-		Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
-			if Highlight.BackgroundTransparency <= 0.99 then
-				if not TabConfig.Visible then
-					TabConfig.Visible = true;
-					TabConfig.Position = UDim2.new(0.5, 0, 0.5, 15)
-					Compkiller:_Animation(TabConfig,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
-				end
-			else
-				TabConfig.Visible = false;
-			end;
-
-			if Compkiller.PerformanceMode then
-				if TabConfig.Visible then
-					Compkiller:_SetNilP(TabConfig , TabMainFrame);
-				else
-					Compkiller:_SetNilP(TabConfig , nil);
-				end;
-			else
-				Compkiller:_SetNilP(TabConfig , TabMainFrame);
-			end;
-
-		end)
-
 		local TabOpen = function(bool)
 			if bool then
 
@@ -7971,70 +7944,13 @@ function Compkiller.new(Config : Window)
 					BackgroundTransparency = 0.925
 				});
 
-				--
-
-				Compkiller:_Animation(ConfigList,Tween,{
-					BackgroundTransparency = 0,
-				});
-
-				Compkiller:_Animation(AddConfig,Tween,{
-					BackgroundTransparency = 0,
-				});
-
-				Compkiller:_Animation(UIStroke_4,Tween,{
-					Transparency = 0,
-				});
-
-				Compkiller:_Animation(UIStroke_3,Tween,{
-					Transparency = 0,
-				});
-
-				Compkiller:_Animation(UIStroke_2,Tween,{
-					Transparency = 0,
-				});
-
-				Compkiller:_Animation(UIStroke,Tween,{
-					Transparency = 0,
-				});
-
-				Compkiller:_Animation(SectionText,Tween,{
-					TextTransparency = 0.5
-				});
-
-				Compkiller:_Animation(TextLabel,Tween,{
-					TextTransparency = 0,
-					TextStrokeTransparency = 0.9
-				});
-
-				Compkiller:_Animation(Frame_2,Tween,{
-					BackgroundTransparency = 0.1,
-				});
-
-				Compkiller:_Animation(BlockLine,Tween,{
-					BackgroundTransparency = 0.5,
-				});
-
-				Compkiller:_Animation(Frame,Tween,{
-					BackgroundTransparency = 0,
-				});
-
-				Compkiller:_Animation(SectionText_2,Tween,{
-					TextTransparency = 0.5
-				});
-
-				Compkiller:_Animation(TextBox,Tween,{
-					TextTransparency = 0
-				});
-
-				Compkiller:_Animation(SectionClose,Tween,{
-					ImageTransparency = 0.5,
-				});
-
-				Compkiller:_Animation(SectionClose_2,Tween,{
-					ImageTransparency = 0.5,
-				});
+				if not TabConfig.Visible then
+					TabConfig.Visible = true;
+					TabConfig.Position = UDim2.new(0.5, 0, 0.5, 15)
+				end
+				Compkiller:_SetNilP(TabConfig , TabMainFrame);
+				Compkiller:_Animation(TabConfig,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0), GroupTransparency = 0})
 			else
-
 				Compkiller:_Animation(Icon,Tween,{
 					ImageTransparency = 0.5
 				});
@@ -8047,66 +7963,15 @@ function Compkiller.new(Config : Window)
 					BackgroundTransparency = 1
 				});
 
-				Compkiller:_Animation(ConfigList,Tween,{
-					BackgroundTransparency = 1,
-				});
-
-				Compkiller:_Animation(AddConfig,Tween,{
-					BackgroundTransparency = 1,
-				});
-
-				Compkiller:_Animation(UIStroke_4,Tween,{
-					Transparency = 1,
-				});
-
-				Compkiller:_Animation(UIStroke_3,Tween,{
-					Transparency = 1,
-				});
-
-				Compkiller:_Animation(UIStroke_2,Tween,{
-					Transparency = 1,
-				});
-
-				Compkiller:_Animation(UIStroke,Tween,{
-					Transparency = 1,
-				});
-
-				Compkiller:_Animation(SectionText,Tween,{
-					TextTransparency = 1
-				});
-
-				Compkiller:_Animation(TextLabel,Tween,{
-					TextTransparency = 1,
-					TextStrokeTransparency = 1
-				});
-
-				Compkiller:_Animation(Frame_2,Tween,{
-					BackgroundTransparency = 1,
-				});
-
-				Compkiller:_Animation(BlockLine,Tween,{
-					BackgroundTransparency = 1,
-				});
-
-				Compkiller:_Animation(Frame,Tween,{
-					BackgroundTransparency = 1,
-				});
-
-				Compkiller:_Animation(SectionText_2,Tween,{
-					TextTransparency = 1
-				});
-
-				Compkiller:_Animation(TextBox,Tween,{
-					TextTransparency = 1
-				});
-
-				Compkiller:_Animation(SectionClose,Tween,{
-					ImageTransparency = 1,
-				});
-
-				Compkiller:_Animation(SectionClose_2,Tween,{
-					ImageTransparency = 1,
-				});
+				Compkiller:_Animation(TabConfig,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15), GroupTransparency = 1})
+				task.delay(0.35, function()
+					if TabConfig.GroupTransparency >= 0.99 then
+						TabConfig.Visible = false;
+						if Compkiller.PerformanceMode then
+							Compkiller:_SetNilP(TabConfig , nil);
+						end
+					end
+				end)
 			end;
 		end;
 
@@ -8734,7 +8599,8 @@ function Compkiller.new(Config : Window)
 
 		if Internal then
 
-			local TabContent = Instance.new("Frame")
+			local TabContent = Instance.new("CanvasGroup")
+			TabContent.GroupTransparency = 1
 			local Left = Instance.new("ScrollingFrame")
 			local UIListLayout = Instance.new("UIListLayout")
 			local Right = Instance.new("ScrollingFrame")
@@ -8932,7 +8798,8 @@ function Compkiller.new(Config : Window)
 			UICorner.CornerRadius = UDim.new(0, 4)
 			UICorner.Parent = Highlight
 
-			local TabContent = Instance.new("Frame")
+			local TabContent = Instance.new("CanvasGroup")
+			TabContent.GroupTransparency = 1
 			local Left = Instance.new("ScrollingFrame")
 			local UIListLayout = Instance.new("UIListLayout")
 			local Right = Instance.new("ScrollingFrame")
@@ -9024,28 +8891,6 @@ function Compkiller.new(Config : Window)
 
 			local Tween = TweenInfo.new(0.35,Enum.EasingStyle.Quint);
 
-			Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
-				if Highlight.BackgroundTransparency <= 0.99 then
-					if not TabContent.Visible then
-						TabContent.Visible = true;
-						TabContent.Position = UDim2.new(0.5, 0, 0.5, 15)
-						Compkiller:_Animation(TabContent,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
-					end
-				else
-					TabContent.Visible = false;
-				end;
-
-				if Compkiller.PerformanceMode then
-					if TabContent.Visible then
-						Compkiller:_SetNilP(TabContent , TabMainFrame);
-					else
-						Compkiller:_SetNilP(TabContent , nil);
-					end;
-				else
-					Compkiller:_SetNilP(TabContent , TabMainFrame);
-				end;
-			end)
-
 			local TabOpen = function(bool)
 				if bool then
 
@@ -9062,6 +8907,13 @@ function Compkiller.new(Config : Window)
 					Compkiller:_Animation(Highlight,Tween,{
 						BackgroundTransparency = 0.925
 					});
+
+					if not TabContent.Visible then
+						TabContent.Visible = true;
+						TabContent.Position = UDim2.new(0.5, 0, 0.5, 15)
+					end
+					Compkiller:_SetNilP(TabContent , TabMainFrame);
+					Compkiller:_Animation(TabContent,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0), GroupTransparency = 0})
 				else
 					Compkiller:_Animation(Icon,Tween,{
 						ImageTransparency = 0.5
@@ -9074,6 +8926,16 @@ function Compkiller.new(Config : Window)
 					Compkiller:_Animation(Highlight,Tween,{
 						BackgroundTransparency = 1
 					});
+
+					Compkiller:_Animation(TabContent,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15), GroupTransparency = 1})
+					task.delay(0.35, function()
+						if TabContent.GroupTransparency >= 0.99 then
+							TabContent.Visible = false;
+							if Compkiller.PerformanceMode then
+								Compkiller:_SetNilP(TabContent , nil);
+							end
+						end
+					end)
 				end;
 			end;
 
