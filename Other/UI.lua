@@ -7123,7 +7123,7 @@ function Compkiller.new(Config : Window)
 		ContainerTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ContainerTab.BorderSizePixel = 0
 		ContainerTab.Position = UDim2.new(0.5, 0, 0.5, 0)
-		ContainerTab.Size = UDim2.new(1, 0, 1, 0)
+		ContainerTab.Size = UDim2.new(1, -15, 1, -15)
 		ContainerTab.ZIndex = 6
 
 		MainFrame.Name = Compkiller:_RandomString()
@@ -7637,7 +7637,7 @@ function Compkiller.new(Config : Window)
 		TabConfig.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabConfig.BorderSizePixel = 0
 		TabConfig.Position = UDim2.new(0.5, 0, 0.5, 0)
-		TabConfig.Size = UDim2.new(1, 0, 1, 0)
+		TabConfig.Size = UDim2.new(1, -5, 1, -5)
 		TabConfig.ZIndex = 6
 
 		ConfigList.Name = Compkiller:_RandomString()
@@ -9424,11 +9424,7 @@ function Compkiller.new(Config : Window)
 							end;
 						end;
 
-						local remainingHeight = UIListLayout.AbsoluteContentSize.Y + (Parent.AbsoluteSize.Y - (parentScale));
-
-						if Section:GetAttribute('Lasth') then
-							remainingHeight = math.max(remainingHeight , Section:GetAttribute('Lasth'));
-						end;
+						local remainingHeight = UIListLayout.AbsoluteContentSize.Y + 5;
 
 						Section:SetAttribute('Height',remainingHeight);
 						Section:SetAttribute('Lasth',remainingHeight);
