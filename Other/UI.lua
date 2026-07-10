@@ -7123,7 +7123,7 @@ function Compkiller.new(Config : Window)
 		ContainerTab.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ContainerTab.BorderSizePixel = 0
 		ContainerTab.Position = UDim2.new(0.5, 0, 0.5, 0)
-		ContainerTab.Size = UDim2.new(1, -15, 1, -15)
+		ContainerTab.Size = UDim2.new(1, 0, 1, 0)
 		ContainerTab.ZIndex = 6
 
 		MainFrame.Name = Compkiller:_RandomString()
