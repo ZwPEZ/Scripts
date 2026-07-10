@@ -7639,7 +7639,7 @@ function Compkiller.new(Config : Window)
 		TabConfig.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabConfig.BorderSizePixel = 0
 		TabConfig.Position = UDim2.new(0.5, 0, 0.5, 0)
-		TabConfig.Size = UDim2.new(1, -12, 1, -12)
+		TabConfig.Size = UDim2.new(1, -5, 1, -5)
 		TabConfig.ZIndex = 6
 
 		ConfigList.Name = Compkiller:_RandomString()
@@ -7654,8 +7654,8 @@ function Compkiller.new(Config : Window)
 
 		ConfigList.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ConfigList.BorderSizePixel = 0
-		ConfigList.Position = UDim2.new(0.5, 0, 0, 5)
-		ConfigList.Size = UDim2.new(1, 0, 1, -110)
+		ConfigList.Position = UDim2.new(0.5, 0, 0, 0)
+		ConfigList.Size = UDim2.new(1, -1, 1, -105)
 		ConfigList.ZIndex = 9
 
 		UICorner.CornerRadius = UDim.new(0, 6)
@@ -7704,21 +7704,38 @@ function Compkiller.new(Config : Window)
 		SectionClose.BackgroundTransparency = 1.000
 		SectionClose.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		SectionClose.BorderSizePixel = 0
-		SectionClose.Position = UDim2.new(1, -12, 0.5, 0)
-		SectionClose.Size = UDim2.new(0, 17, 0, 17)
+		SectionClose.Position = UDim2.new(1, -8, 0.5, 0)
+		SectionClose.Size = UDim2.new(0, 18, 0, 18)
 		SectionClose.ZIndex = 10
 		SectionClose.Image = Compkiller:CacheImage("rbxassetid://109535175596957")
 		SectionClose.ImageTransparency = 0.500
 
+		Frame.Name = Compkiller:_RandomString()
+		Frame.Parent = ConfigList
+		Frame.AnchorPoint = Vector2.new(0.5, 0)
+		Frame.BackgroundColor3 = Compkiller.Colors.BlockColor
 
-		ScrollingFrame.Parent = ConfigList
+		table.insert(Compkiller.Elements.BlockColor , {
+			Element = Frame,
+			Property = "BackgroundColor3"
+		});
+
+		Frame.BackgroundTransparency = 1.000
+		Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Frame.BorderSizePixel = 0
+		Frame.Position = UDim2.new(0.5, 0, 0, 35)
+		Frame.Size = UDim2.new(1, -2, 1, -38)
+		Frame.ZIndex = 12
+
+		ScrollingFrame.Name = Compkiller:_RandomString()
+		ScrollingFrame.Parent = Frame
 		ScrollingFrame.Active = true
 		ScrollingFrame.AnchorPoint = Vector2.new(0.5, 0)
 		ScrollingFrame.BackgroundTransparency = 1.000
 		ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ScrollingFrame.BorderSizePixel = 0
-		ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 35)
-		ScrollingFrame.Size = UDim2.new(1, -10, 1, -45)
+		ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 0)
+		ScrollingFrame.Size = UDim2.new(1, -10, 1, -5)
 		ScrollingFrame.ZIndex = 12
 		ScrollingFrame.ScrollBarThickness = 0
 
@@ -7745,8 +7762,8 @@ function Compkiller.new(Config : Window)
 
 		AddConfig.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		AddConfig.BorderSizePixel = 0
-		AddConfig.Position = UDim2.new(0.5, 0, 1, -5)
-		AddConfig.Size = UDim2.new(1, 0, 0, 95)
+		AddConfig.Position = UDim2.new(0.5, 0, 1, 0)
+		AddConfig.Size = UDim2.new(1, -1, 0, 95)
 		AddConfig.ZIndex = 9
 
 		UICorner_2.CornerRadius = UDim.new(0, 6)
@@ -9349,11 +9366,11 @@ function Compkiller.new(Config : Window)
 						});
 					else
 						Compkiller:_Animation(Section,TweenInfo.new(0.4,Enum.EasingStyle.Quint),{
-							Size = UDim2.new(1, 0, 0, math.abs(UIListLayout.AbsoluteContentSize.Y) - 1)
+							Size = UDim2.new(1, 0, 0, math.abs(UIListLayout.AbsoluteContentSize.Y) + 2)
 						});
 
 						if Section:GetAttribute('Lasth') and UIListLayout.AbsoluteContentSize.Y > Section:GetAttribute('Lasth') then
-							Section:SetAttribute('Lasth',math.abs(UIListLayout.AbsoluteContentSize.Y) - 1);
+							Section:SetAttribute('Lasth',math.abs(UIListLayout.AbsoluteContentSize.Y) + 2);
 						end;
 					end;
 
