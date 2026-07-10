@@ -1875,10 +1875,10 @@ function Compkiller:_AddLinkValue(Name , Default , GlobalBlock , LinkValues , re
 		UICorner.CornerRadius = UDim.new(1, 0)
 		UICorner.Parent = Toggle
 
-		UIStroke.Color = Compkiller.Colors.HighStrokeColor
+		UIStroke.Color = Compkiller.Colors.StrokeColor
 		UIStroke.Parent = Toggle
 
-		table.insert(Compkiller.Elements.HighStrokeColor,{
+		table.insert(Compkiller.Elements.StrokeColor,{
 			Element = UIStroke,
 			Property = "Color"
 		})
@@ -1893,12 +1893,6 @@ function Compkiller:_AddLinkValue(Name , Default , GlobalBlock , LinkValues , re
 		ToggleValue.Size = UDim2.new(0.550000012, 0, 0.550000012, 0)
 		ToggleValue.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		ToggleValue.ZIndex = GlobalBlock.ZIndex + 2
-
-		local InnerStroke = Instance.new("UIStroke")
-		InnerStroke.Color = Color3.fromRGB(0, 0, 0)
-		InnerStroke.Transparency = 0.5
-		InnerStroke.Thickness = 1
-		InnerStroke.Parent = ToggleValue
 
 		UICorner_2.CornerRadius = UDim.new(1, 0)
 		UICorner_2.Parent = ToggleValue;
@@ -9432,7 +9426,7 @@ function Compkiller.new(Config : Window)
 							end;
 						end;
 
-						local remainingHeight = UIListLayout.AbsoluteContentSize.Y + 5;
+						local remainingHeight = UIListLayout.AbsoluteContentSize.Y + 2;
 
 						Section:SetAttribute('Height',remainingHeight);
 						Section:SetAttribute('Lasth',remainingHeight);
@@ -9448,18 +9442,14 @@ function Compkiller.new(Config : Window)
 				task.wait()
 				
 				local Elements = {}
-				for _, v in pairs(Section:GetChildren()) do
+				for _, v in ipairs(Section:GetChildren()) do
 					if v:IsA("Frame") and v.Name ~= Header.Name then
 						table.insert(Elements, v)
 					end
 				end
 
-				table.sort(Elements, function(a, b)
-					return a.AbsolutePosition.Y < b.AbsolutePosition.Y
-				end)
-
 				for i, v in ipairs(Elements) do
-					for _, child in pairs(v:GetChildren()) do
+					for _, child in ipairs(v:GetChildren()) do
 						if child:IsA("Frame") and child.Size.Y.Offset == 1 and child.BackgroundTransparency == 0.5 then
 							child.Visible = (i ~= #Elements)
 						end
