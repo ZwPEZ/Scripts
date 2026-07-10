@@ -10870,7 +10870,7 @@ function Compkiller.new(Config : Window)
 				Property = "TextColor3"
 			})
 
-			local bounds = game:GetService("TextService"):GetTextSize(MsgText.Text, 12, Enum.Font.GothamMedium, Vector2.new(ScrollingFrame.AbsoluteSize.X - 55, math.huge))
+			local bounds = game:GetService("TextService"):GetTextSize(MsgText.Text, 12, Enum.Font.GothamMedium, Vector2.new(math.max(100, ScrollingFrame.AbsoluteSize.X - 55), math.huge))
 			MsgFrame.Size = UDim2.new(1, 0, 0, math.max(45, 25 + bounds.Y))
 
 			ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
@@ -10903,14 +10903,16 @@ function Compkiller.new(Config : Window)
 			if not TrixAPI then return end
 			task.spawn(function()
 				local msgs = TrixAPI:GetChatMessages()
-				if msgs then
+				if type(msgs) == "table" then
 					for _, v in pairs(ScrollingFrame:GetChildren()) do
 						if v:IsA("Frame") and v.Name ~= Space.Name then
 							v:Destroy()
 						end
 					end
-					for _, msg in ipairs(msgs) do
-						TabArgs:AddMessage(msg)
+					for _, msg in pairs(msgs) do
+						pcall(function()
+							TabArgs:AddMessage(msg)
+						end)
 					end
 				end
 			end)
