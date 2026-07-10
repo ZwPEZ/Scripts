@@ -7896,12 +7896,12 @@ function Compkiller.new(Config : Window)
 
 		Button.Name = Compkiller:_RandomString()
 		Button.Parent = AddConfig
-		Button.AnchorPoint = Vector2.new(0.5, 1)
+		Button.AnchorPoint = Vector2.new(0.5, 0)
 		Button.BackgroundColor3 = Compkiller.Colors.SwitchColor
 		Button.BackgroundTransparency = 1.000
 		Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Button.BorderSizePixel = 0
-		Button.Position = UDim2.new(0.5, 0, 1, -10)
+		Button.Position = UDim2.new(0.5, 0, 0, 60)
 		Button.Size = UDim2.new(1, -7, 0, 25)
 		Button.ZIndex = 10
 
