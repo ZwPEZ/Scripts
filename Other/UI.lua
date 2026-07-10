@@ -7607,7 +7607,7 @@ function Compkiller.new(Config : Window)
 
 		local TabConfig = Instance.new("Frame")
 		local ConfigList = Instance.new("Frame")
-		local UICorner = Instance.new("UICorner")
+		local ConfigCorner = Instance.new("UICorner")
 		local UIStroke = Instance.new("UIStroke")
 		local Header = Instance.new("Frame")
 		local SectionText = Instance.new("TextLabel")
@@ -7639,7 +7639,7 @@ function Compkiller.new(Config : Window)
 		TabConfig.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabConfig.BorderSizePixel = 0
 		TabConfig.Position = UDim2.new(0.5, 0, 0.5, 0)
-		TabConfig.Size = UDim2.new(1, 0, 1, 0)
+		TabConfig.Size = UDim2.new(1, -15, 1, -15)
 		TabConfig.ZIndex = 6
 
 		ConfigList.Name = Compkiller:_RandomString()
@@ -7654,12 +7654,12 @@ function Compkiller.new(Config : Window)
 
 		ConfigList.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ConfigList.BorderSizePixel = 0
-		ConfigList.Position = UDim2.new(0.5, 0, 0, 5)
-		ConfigList.Size = UDim2.new(1, -10, 1, -110)
+		ConfigList.Position = UDim2.new(0.5, 0, 0, 0)
+		ConfigList.Size = UDim2.new(1, 0, 1, -105)
 		ConfigList.ZIndex = 9
 
-		UICorner.CornerRadius = UDim.new(0, 6)
-		UICorner.Parent = ConfigList
+		ConfigCorner.CornerRadius = UDim.new(0, 6)
+		ConfigCorner.Parent = ConfigList
 
 		UIStroke.Color = Compkiller.Colors.StrokeColor
 		UIStroke.Parent = ConfigList
@@ -7674,6 +7674,7 @@ function Compkiller.new(Config : Window)
 		Header.BackgroundTransparency = 1.000
 		Header.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Header.BorderSizePixel = 0
+		Header.LayoutOrder = -100
 		Header.Size = UDim2.new(1, 0, 0, 35)
 		Header.ZIndex = 9
 
@@ -7709,6 +7710,17 @@ function Compkiller.new(Config : Window)
 		SectionClose.ZIndex = 10
 		SectionClose.Image = Compkiller:CacheImage("rbxassetid://109535175596957")
 		SectionClose.ImageTransparency = 0.500
+
+		BlockLine.Name = Compkiller:_RandomString()
+		BlockLine.Parent = Header
+		BlockLine.AnchorPoint = Vector2.new(0.5, 1)
+		BlockLine.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		BlockLine.BackgroundTransparency = 0.500
+		BlockLine.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		BlockLine.BorderSizePixel = 0
+		BlockLine.Position = UDim2.new(0.5, 0, 1, 0)
+		BlockLine.Size = UDim2.new(1, 0, 0, 1)
+		BlockLine.ZIndex = 10
 
 		Frame.Name = Compkiller:_RandomString()
 		Frame.Parent = ConfigList
@@ -7762,8 +7774,8 @@ function Compkiller.new(Config : Window)
 
 		AddConfig.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		AddConfig.BorderSizePixel = 0
-		AddConfig.Position = UDim2.new(0.5, 0, 1, -5)
-		AddConfig.Size = UDim2.new(1, -10, 0, 95)
+		AddConfig.Position = UDim2.new(0.5, 0, 1, 0)
+		AddConfig.Size = UDim2.new(1, 0, 0, 95)
 		AddConfig.ZIndex = 9
 
 		UICorner_2.CornerRadius = UDim.new(0, 6)
