@@ -1894,6 +1894,12 @@ function Compkiller:_AddLinkValue(Name , Default , GlobalBlock , LinkValues , re
 		ToggleValue.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		ToggleValue.ZIndex = GlobalBlock.ZIndex + 2
 
+		local InnerStroke = Instance.new("UIStroke")
+		InnerStroke.Color = Color3.fromRGB(0, 0, 0)
+		InnerStroke.Transparency = 0.5
+		InnerStroke.Thickness = 1
+		InnerStroke.Parent = ToggleValue
+
 		UICorner_2.CornerRadius = UDim.new(1, 0)
 		UICorner_2.Parent = ToggleValue;
 
@@ -7139,10 +7145,12 @@ function Compkiller.new(Config : Window)
 
 		Top.Name = Compkiller:_RandomString()
 		Top.Parent = ContainerTab
+		Top.AnchorPoint = Vector2.new(0.5, 0)
 		Top.BackgroundTransparency = 1.000
 		Top.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Top.BorderSizePixel = 0
-		Top.Size = UDim2.new(1, 0, 0, 25)
+		Top.Position = UDim2.new(0.5, 0, 0, 0)
+		Top.Size = UDim2.new(1, -5, 0, 25)
 		Top.ZIndex = 7
 
 		UIListLayout.Parent = Top
@@ -7653,7 +7661,7 @@ function Compkiller.new(Config : Window)
 		ConfigList.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ConfigList.BorderSizePixel = 0
 		ConfigList.Position = UDim2.new(0.5, 0, 0, 5)
-		ConfigList.Size = UDim2.new(1, -10, 1, -110)
+		ConfigList.Size = UDim2.new(1, 0, 1, -110)
 		ConfigList.ZIndex = 9
 
 		UICorner.CornerRadius = UDim.new(0, 6)
@@ -9438,6 +9446,26 @@ function Compkiller.new(Config : Window)
 
 			Section.ChildAdded:Connect(function()
 				task.wait()
+				
+				local Elements = {}
+				for _, v in pairs(Section:GetChildren()) do
+					if v:IsA("Frame") and v.Name ~= Header.Name then
+						table.insert(Elements, v)
+					end
+				end
+
+				table.sort(Elements, function(a, b)
+					return a.AbsolutePosition.Y < b.AbsolutePosition.Y
+				end)
+
+				for i, v in ipairs(Elements) do
+					for _, child in pairs(v:GetChildren()) do
+						if child:IsA("Frame") and child.Size.Y.Offset == 1 and child.BackgroundTransparency == 0.5 then
+							child.Visible = (i ~= #Elements)
+						end
+					end
+				end
+
 				refreshScale();
 			end)
 
