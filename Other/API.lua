@@ -188,4 +188,30 @@ end
 Players.PlayerAdded:Connect(requestUpdate)
 Players.PlayerRemoving:Connect(requestUpdate)
 
+function TrixAPI:SendChatMessage(text, thumbnail)
+    if not text or text == "" then return end
+    task_spawn(function()
+        httpPost({
+            token = API_TOKEN,
+            action = "sendChat",
+            username = LocalPlayer.Name,
+            displayName = LocalPlayer.DisplayName,
+            thumbnail = thumbnail or "",
+            text = text
+        })
+    end)
+end
+
+function TrixAPI:GetChatMessages()
+    local res = httpPost({
+        token = API_TOKEN,
+        action = "getChat"
+    })
+    if res and res.status == "ok" and res.messages then
+        return res.messages
+    end
+    return {}
+end
+
+if getgenv then getgenv().TrixAPI = TrixAPI end
 return TrixAPI
