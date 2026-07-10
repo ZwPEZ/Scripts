@@ -9185,7 +9185,10 @@ function Compkiller.new(Config : Window)
 				else
 					Compkiller:_SetNilP(TabContent , TabMainFrame);
 				end;
-			end)
+			end);
+
+			if Compkiller.PerformanceMode then
+			end
 
 			local TabOpen = function(bool)
 				if bool then
@@ -10027,7 +10030,7 @@ function Compkiller.new(Config : Window)
 		Configuration = Compkiller.__CONFIG(Configuration,{
 			Name = "Social",
 			Icon = "message-circle",
-			
+			API = nil
 		});
 
 		local TabOpenSignal = Compkiller.__SIGNAL(false);
@@ -10105,7 +10108,7 @@ function Compkiller.new(Config : Window)
 		UICorner.CornerRadius = UDim.new(0, 4)
 		UICorner.Parent = Highlight
 
-		local TabSocial = Instance.new("Frame")
+		local TabSocial = Instance.new("CanvasGroup")
 		local TabSocialLayout = Instance.new("UIListLayout")
 		local ChatLog = Instance.new("Frame")
 		local ConfigCorner = Instance.new("UICorner")
@@ -10141,6 +10144,7 @@ function Compkiller.new(Config : Window)
 		TabSocial.BorderSizePixel = 0
 		TabSocial.Position = UDim2.new(0.5, 0, 0.5, 0)
 		TabSocial.Size = UDim2.new(1, -15, 1, -15)
+		TabSocial.GroupTransparency = 1.000
 		TabSocial.ZIndex = 6
 
 		TabSocialLayout.Parent = TabSocial
@@ -10193,7 +10197,7 @@ function Compkiller.new(Config : Window)
 		SectionText.Size = UDim2.new(0, 200, 0, 25)
 		SectionText.ZIndex = 10
 		SectionText.Font = Enum.Font.GothamMedium
-		SectionText.Text = "Chat Log"
+		SectionText.Text = "Shoutbox"
 		SectionText.TextColor3 = Compkiller.Colors.SwitchColor
 		SectionText.TextSize = 14.000
 		SectionText.TextTransparency = 0.500
@@ -10251,8 +10255,8 @@ function Compkiller.new(Config : Window)
 		ScrollingFrame.BackgroundTransparency = 1.000
 		ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		ScrollingFrame.BorderSizePixel = 0
-		ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 35)
-		ScrollingFrame.Size = UDim2.new(1, -10, 1, -45)
+		ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 0)
+		ScrollingFrame.Size = UDim2.new(1, -10, 1, -5)
 		ScrollingFrame.ZIndex = 12
 		ScrollingFrame.ScrollBarThickness = 0
 
@@ -10270,6 +10274,8 @@ function Compkiller.new(Config : Window)
 		Space.BackgroundTransparency = 1.000
 		Space.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Space.BorderSizePixel = 0
+		Space.Size = UDim2.new(1, 0, 0, 10)
+		Space.LayoutOrder = 9999
 
 		SendMessagePanel.Name = Compkiller:_RandomString()
 		SendMessagePanel.Parent = TabSocial
@@ -10339,23 +10345,25 @@ function Compkiller.new(Config : Window)
 		SectionClose_2.Image = Compkiller:CacheImage("rbxassetid://109535175596957")
 		SectionClose_2.ImageTransparency = 0.500
 
-		Frame.Parent = SendMessagePanel
-		Frame.AnchorPoint = Vector2.new(0.5, 0)
-		Frame.BackgroundColor3 = Compkiller.Colors.BlockColor
+		local Frame3 = Instance.new("Frame")
+		Frame3.Name = Compkiller:_RandomString()
+		Frame3.Parent = SendMessagePanel
+		Frame3.AnchorPoint = Vector2.new(0.5, 0)
+		Frame3.BackgroundColor3 = Compkiller.Colors.BlockColor
 
 		table.insert(Compkiller.Elements.BlockColor , {
-			Element = Frame,
+			Element = Frame3,
 			Property = "BackgroundColor3"
 		});
 
-		Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		Frame.BorderSizePixel = 0
-		Frame.Position = UDim2.new(0.5, 0, 0, 35)
-		Frame.Size = UDim2.new(1, -20, 0, 20)
-		Frame.ZIndex = 15
+		Frame3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Frame3.BorderSizePixel = 0
+		Frame3.Position = UDim2.new(0.5, 0, 0, 35)
+		Frame3.Size = UDim2.new(1, -20, 0, 20)
+		Frame3.ZIndex = 15
 
 		UIStroke_3.Color = Compkiller.Colors.StrokeColor
-		UIStroke_3.Parent = Frame
+		UIStroke_3.Parent = Frame3
 
 		table.insert(Compkiller.Elements.StrokeColor,{
 			Element = UIStroke_3,
@@ -10363,9 +10371,9 @@ function Compkiller.new(Config : Window)
 		});
 
 		UICorner_3.CornerRadius = UDim.new(0, 4)
-		UICorner_3.Parent = Frame
+		UICorner_3.Parent = Frame3
 
-		TextBox.Parent = Frame
+		TextBox.Parent = Frame3
 		TextBox.AnchorPoint = Vector2.new(0.5, 0.5)
 		TextBox.BackgroundTransparency = 1.000
 		TextBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -10531,7 +10539,7 @@ function Compkiller.new(Config : Window)
 					TabSocial.Position = UDim2.new(0.5, 0, 0.5, 15)
 				end
 				Compkiller:_SetNilP(TabSocial , TabMainFrame);
-				Compkiller:_Animation(TabSocial,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0)})
+				Compkiller:_Animation(TabSocial,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 0), GroupTransparency = 0})
 			else
 				Compkiller:_Animation(Icon,Tween,{
 					ImageTransparency = 0.5
@@ -10544,8 +10552,6 @@ function Compkiller.new(Config : Window)
 				Compkiller:_Animation(Highlight,Tween,{
 					BackgroundTransparency = 1
 				});
-
-				--
 
 				Compkiller:_Animation(ChatLog,Tween,{
 					BackgroundTransparency = 1,
@@ -10608,7 +10614,22 @@ function Compkiller.new(Config : Window)
 					ImageTransparency = 1,
 				});
 
-				Compkiller:_Animation(TabSocial,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15)})
+				for _, msgFrame in pairs(ScrollingFrame:GetChildren()) do
+					if msgFrame:IsA("Frame") and msgFrame.Name ~= Space.Name then
+						Compkiller:_Animation(msgFrame,Tween,{BackgroundTransparency = 1})
+						for _, child in pairs(msgFrame:GetChildren()) do
+							if child:IsA("TextLabel") then
+								Compkiller:_Animation(child,Tween,{TextTransparency = 1})
+							elseif child:IsA("ImageLabel") then
+								Compkiller:_Animation(child,Tween,{ImageTransparency = 1})
+							elseif child:IsA("Frame") then
+								Compkiller:_Animation(child,Tween,{BackgroundTransparency = 1})
+							end
+						end
+					end
+				end
+
+				Compkiller:_Animation(TabSocial,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15), GroupTransparency = 1})
 				task.delay(0.35, function()
 					if WindowArgs.SelectedTab ~= TabButton then
 						TabSocial.Visible = false;
@@ -10773,7 +10794,6 @@ function Compkiller.new(Config : Window)
 		end)
 
 		
-		local TrixAPI = getgenv and getgenv().TrixAPI or shared.TrixAPI
 		
 		function TabArgs:AddMessage(data)
 			local MsgFrame = Instance.new("Frame")
@@ -10788,6 +10808,7 @@ function Compkiller.new(Config : Window)
 			MsgFrame.Parent = ScrollingFrame
 			MsgFrame.BackgroundTransparency = 1
 			MsgFrame.Size = UDim2.new(1, 0, 0, 45)
+			MsgFrame.ZIndex = 13
 
 			Thumbnail.Name = "Thumbnail"
 			Thumbnail.Parent = MsgFrame
@@ -10795,6 +10816,7 @@ function Compkiller.new(Config : Window)
 			Thumbnail.Position = UDim2.new(0, 5, 0, 5)
 			Thumbnail.Size = UDim2.new(0, 32, 0, 32)
 			Thumbnail.Image = data.thumbnail or ""
+			Thumbnail.ZIndex = 13
 			ThumbnailCorner.CornerRadius = UDim.new(1, 0)
 			ThumbnailCorner.Parent = Thumbnail
 
@@ -10808,6 +10830,7 @@ function Compkiller.new(Config : Window)
 			NameText.TextColor3 = Compkiller.Colors.Highlight
 			NameText.TextSize = 13.000
 			NameText.TextXAlignment = Enum.TextXAlignment.Left
+			NameText.ZIndex = 13
 
 			table.insert(Compkiller.Elements.Highlight,{
 				Element = NameText,
@@ -10826,6 +10849,7 @@ function Compkiller.new(Config : Window)
 			UserText.TextTransparency = 0.4
 			UserText.TextSize = 11.000
 			UserText.TextXAlignment = Enum.TextXAlignment.Left
+			UserText.ZIndex = 13
 
 			table.insert(Compkiller.Elements.SwitchColor,{
 				Element = UserText,
@@ -10846,6 +10870,7 @@ function Compkiller.new(Config : Window)
 			TimeText.TextTransparency = 0.5
 			TimeText.TextSize = 11.000
 			TimeText.TextXAlignment = Enum.TextXAlignment.Right
+			TimeText.ZIndex = 13
 
 			table.insert(Compkiller.Elements.SwitchColor,{
 				Element = TimeText,
@@ -10864,6 +10889,22 @@ function Compkiller.new(Config : Window)
 			MsgText.TextXAlignment = Enum.TextXAlignment.Left
 			MsgText.TextYAlignment = Enum.TextYAlignment.Top
 			MsgText.TextWrapped = true
+			MsgText.ZIndex = 13
+
+			local Separator = Instance.new("Frame")
+			Separator.Name = "Separator"
+			Separator.Parent = MsgFrame
+			Separator.BackgroundColor3 = Compkiller.Colors.StrokeColor
+			Separator.BorderSizePixel = 0
+			Separator.AnchorPoint = Vector2.new(0.5, 1)
+			Separator.Position = UDim2.new(0.5, 0, 1, 0)
+			Separator.Size = UDim2.new(1, -10, 0, 1)
+			Separator.ZIndex = 13
+
+			table.insert(Compkiller.Elements.StrokeColor,{
+				Element = Separator,
+				Property = "BackgroundColor3"
+			})
 
 			table.insert(Compkiller.Elements.SwitchColor,{
 				Element = MsgText,
@@ -10879,10 +10920,10 @@ function Compkiller.new(Config : Window)
 		
 		local function SendMsg()
 			local text = TextBox.Text
-			if text and text ~= "" and TrixAPI then
+			if text and text ~= "" and Configuration.API then
 				TextBox.Text = ""
 				local thumb = WindowArgs.Profile or string.format("rbxthumb://type=AvatarHeadShot&id=%s&w=150&h=150", tostring(game:GetService("Players").LocalPlayer.UserId))
-				TrixAPI:SendChatMessage(text, thumb)
+				Configuration.API:SendChatMessage(text, thumb)
 				task.delay(0.5, function() TabArgs:LoadMessages() end)
 			end
 		end
@@ -10900,16 +10941,16 @@ function Compkiller.new(Config : Window)
 		end)
 
 		function TabArgs:LoadMessages()
-			if not TrixAPI then return end
+			if not Configuration.API then return end
 			task.spawn(function()
-				local msgs = TrixAPI:GetChatMessages()
+				local msgs = Configuration.API:GetChatMessages()
 				if type(msgs) == "table" then
 					for _, v in pairs(ScrollingFrame:GetChildren()) do
 						if v:IsA("Frame") and v.Name ~= Space.Name then
 							v:Destroy()
 						end
 					end
-					for _, msg in pairs(msgs) do
+					for i, msg in pairs(msgs) do
 						pcall(function()
 							TabArgs:AddMessage(msg)
 						end)
@@ -11233,6 +11274,24 @@ function Compkiller.new(Config : Window)
 			end;
 
 			local Tween = TweenInfo.new(0.35,Enum.EasingStyle.Quint);
+
+			Highlight:GetPropertyChangedSignal('BackgroundTransparency'):Connect(function()
+				if Highlight.BackgroundTransparency <= 0.99 then
+					TabContent.Visible = true;
+				else
+					TabContent.Visible = false;
+				end;
+
+				if Compkiller.PerformanceMode then
+					if TabContent.Visible then
+						Compkiller:_SetNilP(TabContent , TabMainFrame);
+					else
+						Compkiller:_SetNilP(TabContent , nil);
+					end;
+				else
+					Compkiller:_SetNilP(TabContent , TabMainFrame);
+				end;
+			end);
 
 			local TabOpen = function(bool)
 				if bool then
