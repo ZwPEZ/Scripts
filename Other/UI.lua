@@ -6414,8 +6414,16 @@ function Compkiller.new(Config : Window)
 		end;
 	end)
 
+	local MainUIScale = Instance.new("UIScale")
+	MainUIScale.Parent = MainFrame
+	MainUIScale.Scale = 0.85
+
 	Compkiller:_Animation(MainFrame,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
 		Size = Config.Scale
+	});
+	
+	Compkiller:_Animation(MainUIScale,TweenInfo.new(0.85,Enum.EasingStyle.Quint,Enum.EasingDirection.Out),{
+		Scale = 1
 	});
 
 	UICorner.Parent = MainFrame
@@ -7137,6 +7145,7 @@ function Compkiller.new(Config : Window)
 		ContainerTab.Position = UDim2.new(0.5, 0, 0.5, 0)
 		ContainerTab.Size = UDim2.new(1, -15, 1, -15)
 		ContainerTab.ZIndex = 6
+		ContainerTab.Visible = false
 
 		MainFrame.Name = Compkiller:_RandomString()
 		MainFrame.Parent = ContainerTab
@@ -7205,6 +7214,25 @@ function Compkiller.new(Config : Window)
 				Compkiller:_Animation(Highlight,Tween,{
 					BackgroundTransparency = 1
 				});
+
+				if TabArgs.__Current then
+					for i,v in next , TabArgs.Tabs do
+						if v.Root == TabArgs.__Current.Root then
+							v.Remote:Fire(false);
+						end;
+						
+						task.defer(function()
+							local animTween = TweenInfo.new(0.35,Enum.EasingStyle.Quint)
+							Compkiller:_Animation(v.Root, animTween, {BackgroundTransparency = 1})
+							local highlight = v.Root:FindFirstChildWhichIsA("Frame")
+							if highlight then Compkiller:_Animation(highlight, animTween, {BackgroundTransparency = 1}) end
+							local stroke = v.Root:FindFirstChildWhichIsA("UIStroke")
+							if stroke then Compkiller:_Animation(stroke, animTween, {Transparency = 1}) end
+							local txt = v.Root:FindFirstChildWhichIsA("TextLabel")
+							if txt then Compkiller:_Animation(txt, animTween, {TextTransparency = 1}) end
+						end)
+					end;
+				end;
 
 				Compkiller:_Animation(ContainerTab,TweenInfo.new(0.35,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0, 0.5, 15), GroupTransparency = 1})
 				task.delay(0.35, function()
@@ -8894,6 +8922,7 @@ function Compkiller.new(Config : Window)
 			TabContent.Position = UDim2.new(0.5, 0, 0.5, 0)
 			TabContent.Size = UDim2.new(1, -5,1, -5)
 			TabContent.ZIndex = 6
+			TabContent.Visible = false
 
 			Left.Name = Compkiller:_RandomString()
 			Left.Parent = TabContent
@@ -9092,6 +9121,7 @@ function Compkiller.new(Config : Window)
 			TabContent.Position = UDim2.new(0.5, 0, 0.5, 0)
 			TabContent.Size = UDim2.new(1, -15, 1, -15)
 			TabContent.ZIndex = 6
+			TabContent.Visible = false
 
 			Left.Name = Compkiller:_RandomString()
 			Left.Parent = TabContent
@@ -10146,6 +10176,7 @@ function Compkiller.new(Config : Window)
 		TabSocial.Size = UDim2.new(1, -15, 1, -15)
 		TabSocial.GroupTransparency = 1.000
 		TabSocial.ZIndex = 6
+		TabSocial.Visible = false
 
 		TabSocialLayout.Parent = TabSocial
 		TabSocialLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -10456,7 +10487,7 @@ function Compkiller.new(Config : Window)
 
 		local TabOpen = function(bool)
 			if bool then
-
+				TabArgs:LoadMessages()
 				WindowArgs.SelectedTab = TabButton;
 
 				Compkiller:_Animation(Icon,Tween,{
@@ -10533,6 +10564,24 @@ function Compkiller.new(Config : Window)
 				Compkiller:_Animation(SectionClose_2,Tween,{
 					ImageTransparency = 0.5,
 				});
+
+				for _, msgFrame in pairs(ScrollingFrame:GetChildren()) do
+					if msgFrame:IsA("Frame") and msgFrame.Name ~= Space.Name then
+						local NameText = msgFrame:FindFirstChild("NameText")
+						local UserText = msgFrame:FindFirstChild("UserText")
+						local TimeText = msgFrame:FindFirstChild("TimeText")
+						local MsgText = msgFrame:FindFirstChild("MsgText")
+						local Thumbnail = msgFrame:FindFirstChild("Thumbnail")
+						local Separator = msgFrame:FindFirstChild("Separator")
+
+						if MsgText then Compkiller:_Animation(MsgText, Tween, {TextTransparency = 0}) end
+						if NameText then Compkiller:_Animation(NameText, Tween, {TextTransparency = 0}) end
+						if UserText then Compkiller:_Animation(UserText, Tween, {TextTransparency = 0.4}) end
+						if TimeText then Compkiller:_Animation(TimeText, Tween, {TextTransparency = 0.5}) end
+						if Thumbnail then Compkiller:_Animation(Thumbnail, Tween, {ImageTransparency = 0}) end
+						if Separator then Compkiller:_Animation(Separator, Tween, {BackgroundTransparency = 0}) end
+					end
+				end
 
 				if not TabSocial.Visible then
 					TabSocial.Visible = true;
@@ -10781,6 +10830,14 @@ function Compkiller.new(Config : Window)
 				Compkiller:_Animation(SectionClose, AnimTween, {Rotation = -180})
 				Compkiller:_Animation(SectionClose_2, AnimTween, {Rotation = -180})
 			end
+
+			if ChatLogOpen then ScrollingFrame.Visible = true end
+			if SendMessagePanelOpen then TextBox.Visible = true end
+			
+			task.delay(0.35, function()
+				if not ChatLogOpen then ScrollingFrame.Visible = false end
+				if not SendMessagePanelOpen then TextBox.Visible = false end
+			end)
 		end
 
 		Compkiller:_Input(Header, function()
@@ -10795,7 +10852,7 @@ function Compkiller.new(Config : Window)
 
 		
 		
-		function TabArgs:AddMessage(data)
+		function TabArgs:AddMessage(data, order, hash)
 			local MsgFrame = Instance.new("Frame")
 			local Thumbnail = Instance.new("ImageLabel")
 			local ThumbnailCorner = Instance.new("UICorner")
@@ -10804,15 +10861,18 @@ function Compkiller.new(Config : Window)
 			local TimeText = Instance.new("TextLabel")
 			local MsgText = Instance.new("TextLabel")
 
-			MsgFrame.Name = Compkiller:_RandomString()
+			MsgFrame.Name = hash or Compkiller:_RandomString()
+			MsgFrame.LayoutOrder = order or 0
 			MsgFrame.Parent = ScrollingFrame
 			MsgFrame.BackgroundTransparency = 1
+			MsgFrame.BorderSizePixel = 0
 			MsgFrame.Size = UDim2.new(1, 0, 0, 45)
 			MsgFrame.ZIndex = 13
 
 			Thumbnail.Name = "Thumbnail"
 			Thumbnail.Parent = MsgFrame
 			Thumbnail.BackgroundTransparency = 1
+			Thumbnail.BorderSizePixel = 0
 			Thumbnail.Position = UDim2.new(0, 5, 0, 5)
 			Thumbnail.Size = UDim2.new(0, 32, 0, 32)
 			Thumbnail.Image = data.thumbnail or ""
@@ -10823,6 +10883,7 @@ function Compkiller.new(Config : Window)
 			NameText.Name = "NameText"
 			NameText.Parent = MsgFrame
 			NameText.BackgroundTransparency = 1
+			NameText.BorderSizePixel = 0
 			NameText.Position = UDim2.new(0, 45, 0, 5)
 			NameText.Size = UDim2.new(0, 200, 0, 14)
 			NameText.Font = Enum.Font.GothamBold
@@ -10840,6 +10901,7 @@ function Compkiller.new(Config : Window)
 			UserText.Name = "UserText"
 			UserText.Parent = MsgFrame
 			UserText.BackgroundTransparency = 1
+			UserText.BorderSizePixel = 0
 			local nameWidth = game:GetService("TextService"):GetTextSize(NameText.Text, 13, Enum.Font.GothamBold, Vector2.new(math.huge, 14)).X
 			UserText.Position = UDim2.new(0, 45 + nameWidth + 5, 0, 5)
 			UserText.Size = UDim2.new(0, 100, 0, 14)
@@ -10859,6 +10921,7 @@ function Compkiller.new(Config : Window)
 			TimeText.Name = "TimeText"
 			TimeText.Parent = MsgFrame
 			TimeText.BackgroundTransparency = 1
+			TimeText.BorderSizePixel = 0
 			TimeText.AnchorPoint = Vector2.new(1, 0)
 			TimeText.Position = UDim2.new(1, -10, 0, 5)
 			TimeText.Size = UDim2.new(0, 100, 0, 14)
@@ -10880,6 +10943,7 @@ function Compkiller.new(Config : Window)
 			MsgText.Name = "MsgText"
 			MsgText.Parent = MsgFrame
 			MsgText.BackgroundTransparency = 1
+			MsgText.BorderSizePixel = 0
 			MsgText.Position = UDim2.new(0, 45, 0, 22)
 			MsgText.Size = UDim2.new(1, -55, 1, -22)
 			MsgText.Font = Enum.Font.GothamMedium
@@ -10914,6 +10978,21 @@ function Compkiller.new(Config : Window)
 			local bounds = game:GetService("TextService"):GetTextSize(MsgText.Text, 12, Enum.Font.GothamMedium, Vector2.new(math.max(100, ScrollingFrame.AbsoluteSize.X - 55), math.huge))
 			MsgFrame.Size = UDim2.new(1, 0, 0, math.max(45, 25 + bounds.Y))
 
+			MsgText.TextTransparency = 1
+			NameText.TextTransparency = 1
+			UserText.TextTransparency = 1
+			TimeText.TextTransparency = 1
+			Thumbnail.ImageTransparency = 1
+			Separator.BackgroundTransparency = 1
+
+			local animTween = TweenInfo.new(0.35, Enum.EasingStyle.Quint)
+			Compkiller:_Animation(MsgText, animTween, {TextTransparency = 0})
+			Compkiller:_Animation(NameText, animTween, {TextTransparency = 0})
+			Compkiller:_Animation(UserText, animTween, {TextTransparency = 0.4})
+			Compkiller:_Animation(TimeText, animTween, {TextTransparency = 0.5})
+			Compkiller:_Animation(Thumbnail, animTween, {ImageTransparency = 0})
+			Compkiller:_Animation(Separator, animTween, {BackgroundTransparency = 0})
+
 			ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
 			ScrollingFrame.CanvasPosition = Vector2.new(0, UIListLayout.AbsoluteContentSize.Y)
 		end
@@ -10940,20 +11019,47 @@ function Compkiller.new(Config : Window)
 			end
 		end)
 
+		local lastMsgsData = ""
 		function TabArgs:LoadMessages()
 			if not Configuration.API then return end
 			task.spawn(function()
 				local msgs = Configuration.API:GetChatMessages()
 				if type(msgs) == "table" then
-					for _, v in pairs(ScrollingFrame:GetChildren()) do
-						if v:IsA("Frame") and v.Name ~= Space.Name then
-							v:Destroy()
+					local HttpService = game:GetService("HttpService")
+					local success, newData = pcall(function() return HttpService:JSONEncode(msgs) end)
+					if success and newData == lastMsgsData then return end
+					if success then lastMsgsData = newData end
+					
+					local newHashes = {}
+					for i, msg in pairs(msgs) do
+						local txt = tostring(msg.text or ""):sub(1, 20)
+						local hash = "msg_" .. tostring(msg.time) .. "_" .. tostring(msg.username) .. "_" .. txt
+						newHashes[hash] = true
+						
+						local existing = ScrollingFrame:FindFirstChild(hash)
+						if existing then
+							existing.LayoutOrder = i
+						else
+							pcall(function()
+								TabArgs:AddMessage(msg, i, hash)
+							end)
 						end
 					end
-					for i, msg in pairs(msgs) do
-						pcall(function()
-							TabArgs:AddMessage(msg)
-						end)
+
+					for _, v in pairs(ScrollingFrame:GetChildren()) do
+						if v:IsA("Frame") and v.Name ~= Space.Name and not newHashes[v.Name] then
+							local animTween = TweenInfo.new(0.35, Enum.EasingStyle.Quint)
+							for _, child in pairs(v:GetChildren()) do
+								if child:IsA("TextLabel") then
+									Compkiller:_Animation(child, animTween, {TextTransparency = 1})
+								elseif child:IsA("ImageLabel") then
+									Compkiller:_Animation(child, animTween, {ImageTransparency = 1})
+								elseif child:IsA("Frame") then
+									Compkiller:_Animation(child, animTween, {BackgroundTransparency = 1})
+								end
+							end
+							task.delay(0.35, function() v:Destroy() end)
+						end
 					end
 				end
 			end)
@@ -11000,6 +11106,7 @@ function Compkiller.new(Config : Window)
 			TabContent.Position = UDim2.new(0.5, 0, 0.5, 0)
 			TabContent.Size = UDim2.new(1, -5,1, -5)
 			TabContent.ZIndex = 6
+			TabContent.Visible = false
 
 			Left.Name = Compkiller:_RandomString()
 			Left.Parent = TabContent
@@ -11198,6 +11305,7 @@ function Compkiller.new(Config : Window)
 			TabContent.Position = UDim2.new(0.5, 0, 0.5, 0)
 			TabContent.Size = UDim2.new(1, -15, 1, -15)
 			TabContent.ZIndex = 6
+			TabContent.Visible = false
 
 			Left.Name = Compkiller:_RandomString()
 			Left.Parent = TabContent
